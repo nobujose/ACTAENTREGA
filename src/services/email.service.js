@@ -1,9 +1,15 @@
 const nodemailer = require('nodemailer');
 
+// Asumiendo que EMAIL_PORT está definido en .env, si no, podría usar un valor por defecto o causar problemas.
+// Para Gmail, los puertos comunes son 465 (SSL) o 587 (TLS).
+// Las credenciales proporcionadas no especifican un puerto, así que asumiremos que se maneja por process.env.EMAIL_PORT.
+// Si EMAIL_PORT no está configurado, la línea secure: process.env.EMAIL_PORT == 465 podría comportarse de forma inesperada.
+// Es una buena práctica asegurarse de que EMAIL_PORT esté configurado en .env.
+
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  secure: process.env.EMAIL_PORT == 465, // true for 465, false for other ports
+  port: parseInt(process.env.EMAIL_PORT || '587', 10), // Por defecto a 587 si no se proporciona
+  secure: process.env.EMAIL_PORT == 465, // true para 465, false para otros puertos
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -25,12 +31,34 @@ const sendEmail = async (to, subject, html) => {
       subject,
       html,
     });
-    console.log(`Email sent to ${to}`);
+    console.log(`Correo enviado a ${to}`);
     return true;
   } catch (error) {
-    console.error(`Error sending email to ${to}:`, error);
+    console.error(`Error al enviar correo a ${to}:`, error);
     return false;
   }
 };
 
-module.exports = { sendEmail };
+/**
+ * Envía un correo de confirmación de email con un enlace.
+ * @param {string} to - El email del destinatario.
+ * @param {string} token - El token de confirmación.
+ * @returns {Promise<boolean>}
+ */
+const sendConfirmationEmail = async (to, token) => {
+  const confirmationUrl = `http://localhost:3000/api/auth/confirm-email/${token}`; // Asumiendo localhost:3000 como URL base
+
+  const htmlContent = `
+    <h1>Confirma tu dirección de correo electrónico</h1>
+    <p>Gracias por registrarte. Por favor, haz clic en el siguiente enlace para confirmar tu dirección de correo electrónico:</p>
+    <p><a href="${confirmationUrl}">${confirmationUrl}</a></p>
+    <p>Si no te registraste, por favor ignora este correo.</p>
+  `;
+
+  return sendEmail(to, 'Confirma tu correo electrónico', htmlContent);
+};
+
+module.exports = {
+  sendEmail,
+  sendConfirmationEmail, // Exportar la nueva función
+};
