@@ -43,7 +43,7 @@ const createActaEntranteGratis = async (req, res) => {
       return res.status(400).json({ message: 'Faltan campos obligatorios como email o nombreEntidad.' });
     }
     const newRow = [
-      numeroActa, id, email, rifEntidad, denominacionCargo, nombreEntidad,
+      numeroActa, id, email, rifEntidad, cargoEntregado, nombreEntidad,
       ciudad, estado, hora, fecha, direccionEntidad, nombreServidorEntrante,
       cedulaServidorEntrante, profesionServidorEntrante, designacionServidorEntrante,
       nombreAuditor, cedulaAuditor, profesionAuditor, nombreTestigo1,

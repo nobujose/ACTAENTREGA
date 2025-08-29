@@ -9,7 +9,7 @@ const {
   // verifyAccountController, // Comentado porque no está implementado
   confirmEmailController // Importar la nueva función del controlador
 } = require('../controllers/auth.controller');
-const { authenticateToken } = require('../middleware/auth.middleware');
+const { authenticateToken, authenticateResetToken } = require('../middleware/auth.middleware');
 const { loginLimiter } = require('../middleware/rateLimiter.middleware'); // Importar el middleware de limitación de tasa
 const { validateRegistration, validateLogin } = require('../middleware/validation.middleware'); // Importar validaciones
 const { registerLimiter } = require('../middleware/rateLimiter.middleware'); // Importar el middleware de limitación de tasa para registro
@@ -30,7 +30,7 @@ router.post('/register', registerLimiter, validateRegistration, registerCredenti
 // Rutas para recuperación de contraseña
 router.post('/forgot-password', forgotPasswordController);
 router.post('/verify-otp', verifyOtpController);
-router.post('/reset-password', authenticateToken, resetPasswordController);
+router.post('/reset-password', authenticateResetToken, resetPasswordController);
 
 // Ruta para verificar cuenta
 // router.post('/verify-account', verifyAccountController);

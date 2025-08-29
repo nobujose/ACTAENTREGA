@@ -2,6 +2,7 @@
 require('dotenv').config(); // Carga las variables de entorno desde .env
 const express = require('express');
 const cors = require('cors');
+const sheets = require('./services/sheets.service'); // Importar el servicio
 
 // --- 2. Inicialización ---
 const app = express();
@@ -26,7 +27,8 @@ app.use('/api/actas', require('./routes/actas.routes'));
 app.use('/api/redirect', require('./routes/redirect.routes'));
 
 
-// --- 5. Middleware de Manejo de Errores (Básico) ---
+// --- 5. Middleware de Manejo de Errores ---
+
 // Este middleware se ejecutará si ninguna ruta anterior coincide
 app.use((req, res, next) => {
   res.status(404).json({ message: 'Ruta no encontrada' });
@@ -39,6 +41,11 @@ app.use((err, req, res, next) => {
 });
 
 // --- 6. Iniciar Servidor ---
-app.listen(PORT, () => {
-  console.log(`Servidor escuchando en el puerto ${PORT}`);
-});
+const startServer = async () => {
+  await sheets.init(); // Inicializar Google Sheets antes de iniciar el servidor
+  app.listen(PORT, () => {
+    console.log(`Servidor escuchando en el puerto ${PORT}`);
+  });
+};
+
+startServer();

@@ -1,17 +1,32 @@
 const { google } = require('googleapis');
 
-const auth = new google.auth.GoogleAuth({
-    keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-});
-
-const sheets = google.sheets({ version: 'v4', auth });
+let sheets;
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
+
+/**
+ * Inicializa el cliente de Google Sheets.
+ * Esta función debe ser llamada antes de usar cualquier otra función de este módulo.
+ */
+const init = async () => {
+    try {
+        const auth = new google.auth.GoogleAuth({
+            keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+            scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+        });
+        const authClient = await auth.getClient();
+        sheets = google.sheets({ version: 'v4', auth: authClient });
+        console.log("Google Sheets API inicializada correctamente.");
+    } catch (error) {
+        console.error("Error fatal al inicializar Google Sheets API. El servidor no puede iniciar.", error);
+        process.exit(1);
+    }
+};
 
 /**
  * Obtiene datos de un rango específico de una hoja.
  */
 const getSheetData = async (range) => {
+    if (!sheets) throw new Error("Google Sheets API no inicializada. Llama a init() primero.");
     try {
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
@@ -28,6 +43,7 @@ const getSheetData = async (range) => {
  * Añade una nueva fila de datos al final de una hoja.
  */
 const appendSheetData = async (sheetName, rowData) => {
+    if (!sheets) throw new Error("Google Sheets API no inicializada. Llama a init() primero.");
     try {
         const response = await sheets.spreadsheets.values.append({
             spreadsheetId: SPREADSHEET_ID,
@@ -49,6 +65,7 @@ const appendSheetData = async (sheetName, rowData) => {
  * @returns {Promise<{user: object, rowIndex: number}|null>}
  */
 const findRowByValueInColumn = async (sheetName, columnName, valueToFind) => {
+    if (!sheets) throw new Error("Google Sheets API no inicializada. Llama a init() primero.");
     try {
         const allData = await getSheetData(`${sheetName}!A:Z`); // Lee un rango amplio
         if (!allData || allData.length < 1) {
@@ -91,6 +108,7 @@ const findRowByValueInColumn = async (sheetName, columnName, valueToFind) => {
  * Actualiza una celda específica usando el número de fila y el nombre de la columna.
  */
 const updateCell = async (sheetName, rowIndex, columnName, value) => {
+    if (!sheets) throw new Error("Google Sheets API no inicializada. Llama a init() primero.");
     try {
         const headersResponse = await getSheetData(`${sheetName}!1:1`);
         if (!headersResponse) throw new Error("No se pudieron obtener los encabezados.");
@@ -123,6 +141,7 @@ const updateCell = async (sheetName, rowIndex, columnName, value) => {
  * Elimina una fila específica de una hoja de cálculo.
  */
 const deleteRow = async (sheetName, rowIndex) => {
+    if (!sheets) throw new Error("Google Sheets API no inicializada. Llama a init() primero.");
     try {
         const sheetMetadata = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
         const sheet = sheetMetadata.data.sheets.find(s => s.properties.title === sheetName);
@@ -152,6 +171,8 @@ const deleteRow = async (sheetName, rowIndex) => {
 };
 
 module.exports = {
+    init,
+    getSheetData,
     appendSheetData,
     findRowByValueInColumn,
     updateCell,
