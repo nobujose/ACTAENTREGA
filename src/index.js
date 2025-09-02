@@ -42,7 +42,7 @@ app.use((err, req, res, next) => {
 
 // --- 6. Iniciar Servidor ---
 const startServer = async () => {
-  await sheets.init(); // Inicializar Google Sheets antes de iniciar el servidor
+  //await sheets.init(); // Inicializar Google Sheets antes de iniciar el servidor
   app.listen(PORT, () => {
     console.log(`Servidor escuchando en el puerto ${PORT}`);
   });

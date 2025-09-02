@@ -241,7 +241,7 @@ const createActaMaximaAutoridadPaga = async (req, res) => {
           return;
         }
 
-        const headers = allData[0];
+        const headers = allData[0].map(h => h.trim());
         const sourceRow = allData[1]; // La primera fila de datos es la fuente
         const destinationRowIndex = allData.length;
 
@@ -279,7 +279,7 @@ const createActaMaximaAutoridadPaga = async (req, res) => {
             const targetRange = `${columnLetter}${destinationRowIndex}`;
 
             console.log(`Copiando valor para "${columnName}" a la celda ${targetRange}`);
-            await sheets.updateCell(ACTA_MAXIMA_AUTORIDAD_PAGA_SHEET, targetRange, valueToCopy);
+            await sheets.updateCell(ACTA_MAXIMA_AUTORIDAD_PAGA_SHEET, destinationRowIndex, columnName, valueToCopy);
         }
 
         console.log('Copia de todos los Anexos completada exitosamente.');
@@ -312,45 +312,138 @@ const createActaEntrantePaga = async (req, res) => {
     const numeroActa = `A.E.P.-${formattedNumber}`;
 
     const headers = [
-        "numeroActa", "id", "email", "rifOrgano", "denominacionCargoEntrega", 
-        "nombreOrgano", "ciudadSuscripcion", "estadoSuscripcion", "horaSuscripcion",
-        "fechaSuscripcion", "direccionOrgano", "nombreServidorEntrante", 
-        "cedulaServidorEntrante", "profesionServidorEntrante", "designacionServidorEntrante",
-        "nombreAuditor", "cedulaAuditor", "profesionAuditor", "nombreTestigo1", "cedulaTestigo1",
-        "profesionTestigo1", "nombreTestigo2", "cedulaTestigo2", "profesionTestigo2", 
-        "motivoEntrega", "nombreServidorSaliente", "cedulaServidorSaliente", 
-        "designacionServidorSaliente", "disponeEstadoSituacionPresupuestaria", "Anexo_1",
-        "disponeRelacionGastosComprometidosNoCausados", "Anexo_2", 
-        "disponeRelacionGastosComprometidosCausadosNoPagados", "Anexo_3",
-        "disponeEstadoPresupuestarioPorPartidas", "Anexo_4",
-        "disponeEstadoPresupuestarioDetalleCuentas", "Anexo_5", 
-        "disponeEstadosFinancieros", "Anexo_6", "disponeBalanceComprobacion", "Anexo_7",
-        "disponeEstadoSituacionFinanciera", "Anexo_8", "disponeEstadoRendimientoFinanciero", 
-        "Anexo_9", "disponeEstadoMovimientosPatrimonio", "Anexo_10", "disponeRelacionCuentasPorCobrar",
-        "Anexo_11", "disponeRelacionCuentasPorPagar", "Anexo_12", "disponeRelacionCuentasFondosTerceros", 
-        "Anexo_13", "disponeSituacionFondosAnticipo", "Anexo_14", "disponeSituacionCajaChica",
-        "Anexo_15", "disponeActaArqueoCajasChicas", "Anexo_16", "disponeListadoRegistroAuxiliarProveedores", 
-        "Anexo_17", "disponeReportesLibrosContables", "Anexo_18", "disponeReportesCuentasBancarias", "Anexo_19",
-        "disponeReportesConciliacionesBancarias", "Anexo_20", "disponeReportesRetenciones", "Anexo_21", "Anexo_24",
-        "disponeCuadroResumenCargos", "Anexo_25", "disponeCuadroResumenValidadoRRHH", "Anexo_26", "disponeReporteNominas", 
-        "Anexo_27", "disponeInventarioBienes", "Anexo_28", "disponeEjecucionPlanOperativo", "Anexo_29", 
-        "incluyeCausasIncumplimientoMetas", "Anexo_30", "disponePlanOperativoAnual", 
-        "Anexo_31", "incluyeClasificacionArchivo", "Anexo_32",
-        "incluyeUbicacionFisicaArchivo", "Anexo_33", "disponeRelacionMontosFondosAsignados",
-        "Anexo_34", "disponeSaldoEfectivoFondos", "Anexo_35", "disponeRelacionBienesAsignados", 
-        "Anexo_36", "disponeRelacionBienesAsignadosUnidadBienes", "Anexo_37", "disponeEstadosBancariosConciliados", 
-        "Anexo_38", "disponeListaComprobantesGastos", "Anexo_39", "disponeChequesEmitidosPendientesCobro", "Anexo_40", 
-        "disponeListadoTransferenciaBancaria", "Anexo_41", "disponeCaucionFuncionario",
-        "Anexo_42", "disponeCuadroDemostrativoRecaudado", "Anexo_43",
-        "disponeRelacionExpedientesAbiertos", "Anexo_44", "disponeSituacionTesoroNacional", 
-        "Anexo_45", "disponeInfoEjecucionPresupuestoNacional", "Anexo_46", 
-        "disponeMontoDeudaPublicaNacional", "Anexo_47", "disponeSituacionCuentasNacion", 
-        "Anexo_48", "disponeSituacionTesoroEstadal", "Anexo_49", "disponeInfoEjecucionPresupuestoEstadal",
-        "Anexo_50", "disponeSituacionCuentasEstado", "Anexo_51", "disponeSituacionTesoroDistritalMunicipal", 
-        "Anexo_52", "disponeInfoEjecucionPresupuestoDistritalMunicipal", "Anexo_53", "disponeSituacionCuentasDistritalesMunicipales", 
-        "Anexo_54", "disponeInventarioTerrenosEjidos", "Anexo_55", "disponeRelacionIngresosVentaTerrenos", 
-        "Anexo_56", "Firma de Auditoría", "OBSERVACIONES ADICIONALES", "interesProductoActas"
-    ];
+    "numeroActa",
+    "id",
+    "email",
+    "rifOrgano",
+    "denominacionCargoEntrega",
+    "nombreOrgano",
+    "ciudadSuscripcion",
+    "estadoSuscripcion",
+    "horaSuscripcion",
+    "fechaSuscripcion",
+    "direccionOrgano",
+    "nombreServidorEntrante",
+    "cedulaServidorEntrante",
+    "designacionServidorSaliente",
+    "motivoEntrega", // Nota: Este campo aparece dos veces en tu lista.  // Nota: Este campo también se repite.
+    "designacionServidorEntrante",
+    "estadoSituacionPresupuestaria",
+    "Anexo_1",
+    "relacionGastosComprometidosNoCausados",
+    "Anexo_2",
+    "relacionGastosCausadosNoPagados",
+    "Anexo_3",
+    "estadoPresupuestarioPorPartidas",
+    "Anexo_4",
+    "estadoPresupuestarioDetalleCuentas",
+    "Anexo_5",
+    "estadosFinancieros",
+    "Anexo_6",
+    "balanceComprobacion",
+    "Anexo_7",
+    "estadoSituacionFinanciera",
+    "Anexo_8",
+    "estadoRendimientoFinanciero",
+    "Anexo_9",
+    "estadoMovimientosPatrimonio",
+    "Anexo_10",
+    "relacionCuentasPorCobrar",
+    "Anexo_11",
+    "relacionCuentasPorPagar",
+    "Anexo_12",
+    "relacionCuentasFondosTerceros",
+    "Anexo_13",
+    "situacionFondosAnticipo",
+    "Anexo_14",
+    "situacionCajaChica",
+    "Anexo_15",
+    "actaArqueoCajasChicas",
+    "Anexo_16",
+    "listadoRegistroAuxiliarProveedores",
+    "Anexo_17",
+    "reportesLibrosContables",
+    "Anexo_18",
+    "reportesCuentasBancarias",
+    "Anexo_19",
+    "reportesConciliacionesBancarias",
+    "Anexo_20",
+    "reportesRetenciones",
+    "Anexo_21",
+    "reporteProcesosContrataciones",
+    "Anexo_22",
+    "reporteFideicomisoPrestaciones",
+    "Anexo_23",
+    "reporteBonosVacacionales",
+    "Anexo_24",
+    "cuadroResumenCargos",
+    "Anexo_25",
+    "cuadroResumenValidadoRRHH",
+    "Anexo_26",
+    "reporteNominas",
+    "Anexo_27",
+    "inventarioBienes",
+    "Anexo_28",
+    "ejecucionPlanOperativo",
+    "Anexo_29",
+    "causasIncumplimientoMetas",
+    "Anexo_30",
+    "planOperativoAnual",
+    "Anexo_31",
+    "clasificacionArchivo",
+    "Anexo_32",
+    "ubicacionFisicaArchivo",
+    "Anexo_33",
+    "relacionMontosFondosAsignados",
+    "Anexo_34",
+    "saldoEfectivoFondos",
+    "Anexo_35",
+    "relacionBienesAsignados",
+    "Anexo_36",
+    "relacionBienesAsignadosUnidadBienes",
+    "Anexo_37",
+    "estadosBancariosConciliados",
+    "Anexo_38",
+    "listaComprobantesGastos",
+    "Anexo_39",
+    "chequesEmitidosPendientesCobro",
+    "Anexo_40",
+    "listadoTransferenciaBancaria",
+    "Anexo_41",
+    "caucionFuncionario",
+    "Anexo_42",
+    "cuadroDemostrativoRecaudado",
+    "Anexo_43",
+    "relacionExpedientesAbiertos",
+    "Anexo_44",
+    "situacionTesoroNacional",
+    "Anexo_45",
+    "infoEjecucionPresupuestoNacional",
+    "Anexo_46",
+    "montoDeudaPublicaNacional",
+    "Anexo_47",
+    "situacionCuentasNacion",
+    "Anexo_48",
+    "situacionTesoroEstadal",
+    "Anexo_49",
+    "infoEjecucionPresupuestoEstadal",
+    "Anexo_50",
+    "situacionCuentasEstado",
+    "Anexo_51",
+    "situacionTesoroDistritalMunicipal",
+    "Anexo_52",
+    "infoEjecucionPresupuestoDistritalMunicipal",
+    "Anexo_53",
+    "situacionCuentasDistritalesMunicipales",
+    "Anexo_54",
+    "inventarioTerrenosEjidos",
+    "Anexo_55",
+    "relacionIngresosVentaTerrenos",
+    "Anexo_56",
+    "observacionesAdicionales",
+    "FirmaAuditoría",
+    "interesProducto"
+];
 
     const newRow = headers.map(header => {
         if (header === 'numeroActa') return numeroActa;
@@ -380,7 +473,7 @@ const createActaEntrantePaga = async (req, res) => {
           return;
         }
 
-        const sheetHeaders = allData[0];
+        const sheetHeaders = allData[0].map(h => h.trim());
         const sourceRow = allData[1];
         const destinationRowIndex = allData.length;
 
@@ -401,7 +494,8 @@ const createActaEntrantePaga = async (req, res) => {
             }
 
             const targetRange = `${columnLetter}${destinationRowIndex}`;
-            await sheets.updateCell(ACTA_ENTRANTE_PAGA_SHEET, targetRange, valueToCopy);
+            console.log(`Copiando valor para "${columnName}" a la celda ${targetRange}`);
+            await sheets.updateCell(ACTA_ENTRANTE_PAGA_SHEET, destinationRowIndex, columnName, valueToCopy);
         }
         console.log('Copia de Anexos para Acta Entrante Paga completada.');
       } catch (copyError) {
@@ -434,11 +528,143 @@ const createActaSalientePaga = async (req, res) => {
       }
     }
     const formattedNumber = String(nextNumber).padStart(3, '0');
-    const numeroActa = `A.S.P.-${formattedNumber}`;
+    const numeroActa = `A.E.P.-${formattedNumber}`;
 
     const headers = [
-        "numeroActa", "id", "email", "rifOrgano", "denominacionCargoEntrega", "nombreOrgano", "ciudadSuscripcion", "estadoSuscripcion", "horaSuscripcion", "fechaSuscripcion", "direccionOrgano", "nombreServidorEntrante", "cedulaServidorEntrante", "designacionServidorSaliente", "motivoEntrega", "nombreServidorEntrante", "cedulaServidorEntrante", "designacionServidorEntrante", "estadoSituacionPresupuestaria", "Anexo_1", "relacionGastosComprometidosNoCausados", "Anexo_2", "relacionGastosCausadosNoPagados", "Anexo_3", "estadoPresupuestarioPorPartidas", "Anexo_4", "estadoPresupuestarioDetalleCuentas", "Anexo_5", "estadosFinancieros", "Anexo_6", "balanceComprobacion", "Anexo_7", "estadoSituacionFinanciera", "Anexo_8", "estadoRendimientoFinanciero", "Anexo_9", "estadoMovimientosPatrimonio", "Anexo_10", "relacionCuentasPorCobrar", "Anexo_11", "relacionCuentasPorPagar", "Anexo_12", "relacionCuentasFondosTerceros", "Anexo_13", "situacionFondosAnticipo", "Anexo_14", "situacionCajaChica", "Anexo_15", "actaArqueoCajasChicas", "Anexo_16", "listadoRegistroAuxiliarProveedores", "Anexo_17", "reportesLibrosContables", "Anexo_18", "reportesCuentasBancarias", "Anexo_19", "reportesConciliacionesBancarias", "Anexo_20", "reportesRetenciones", "Anexo_21", "reporteProcesosContrataciones", "Anexo_22", "reporteFideicomisoPrestaciones", "Anexo_23", "reporteBonosVacacionales", "Anexo_24", "cuadroResumenCargos", "Anexo_25", "cuadroResumenValidadoRRHH", "Anexo_26", "reporteNominas", "Anexo_27", "inventarioBienes", "Anexo_28", "ejecucionPlanOperativo", "Anexo_29", "causasIncumplimientoMetas", "Anexo_30", "planOperativoAnual", "Anexo_31", "clasificacionArchivo", "Anexo_32", "ubicacionFisicaArchivo", "Anexo_33", "relacionMontosFondosAsignados", "Anexo_34", "saldoEfectivoFondos", "Anexo_35", "relacionBienesAsignados", "Anexo_36", "relacionBienesAsignadosUnidadBienes", "Anexo_37", "estadosBancariosConciliados", "Anexo_38", "listaComprobantesGastos", "Anexo_39", "chequesEmitidosPendientesCobro", "Anexo_40", "listadoTransferenciaBancaria", "Anexo_41", "caucionFuncionario", "Anexo_42", "cuadroDemostrativoRecaudado", "Anexo_43", "relacionExpedientesAbiertos", "Anexo_44", "situacionTesoroNacional", "Anexo_45", "infoEjecucionPresupuestoNacional", "Anexo_46", "montoDeudaPublicaNacional", "Anexo_47", "situacionCuentasNacion", "Anexo_48", "situacionTesoroEstadal", "Anexo_49", "infoEjecucionPresupuestoEstadal", "Anexo_50", "situacionCuentasEstado", "Anexo_51", "situacionTesoroDistritalMunicipal", "Anexo_52", "infoEjecucionPresupuestoDistritalMunicipal", "Anexo_53", "situacionCuentasDistritalesMunicipales", "Anexo_54", "inventarioTerrenosEjidos", "Anexo_55", "relacionIngresosVentaTerrenos", "Anexo_56", "ANEXO ADICIONAL", "OBSERVACIONES ADICIONALES", "Firma de Auditoría", "interesProducto"
-    ];
+    "numeroActa",
+    "id",
+    "email",
+    "rifOrgano",
+    "denominacionCargoEntrega",
+    "nombreOrgano",
+    "ciudadSuscripcion",
+    "estadoSuscripcion",
+    "horaSuscripcion",
+    "fechaSuscripcion",
+    "direccionOrgano",
+    "nombreServidorEntrante",
+    "cedulaServidorEntrante",
+    "designacionServidorSaliente",
+    "motivoEntrega",
+    "nombreServidorEntrante", // Nota: Este campo aparece dos veces en tu lista.
+    "cedulaServidorEntrante",  // Nota: Este campo también se repite.
+    "designacionServidorEntrante",
+    "estadoSituacionPresupuestaria",
+    "Anexo_1",
+    "relacionGastosComprometidosNoCausados",
+    "Anexo_2",
+    "relacionGastosCausadosNoPagados",
+    "Anexo_3",
+    "estadoPresupuestarioPorPartidas",
+    "Anexo_4",
+    "estadoPresupuestarioDetalleCuentas",
+    "Anexo_5",
+    "estadosFinancieros",
+    "Anexo_6",
+    "balanceComprobacion",
+    "Anexo_7",
+    "estadoSituacionFinanciera",
+    "Anexo_8",
+    "estadoRendimientoFinanciero",
+    "Anexo_9",
+    "estadoMovimientosPatrimonio",
+    "Anexo_10",
+    "relacionCuentasPorCobrar",
+    "Anexo_11",
+    "relacionCuentasPorPagar",
+    "Anexo_12",
+    "relacionCuentasFondosTerceros",
+    "Anexo_13",
+    "situacionFondosAnticipo",
+    "Anexo_14",
+    "situacionCajaChica",
+    "Anexo_15",
+    "actaArqueoCajasChicas",
+    "Anexo_16",
+    "listadoRegistroAuxiliarProveedores",
+    "Anexo_17",
+    "reportesLibrosContables",
+    "Anexo_18",
+    "reportesCuentasBancarias",
+    "Anexo_19",
+    "reportesConciliacionesBancarias",
+    "Anexo_20",
+    "reportesRetenciones",
+    "Anexo_21",
+    "reporteProcesosContrataciones",
+    "Anexo_22",
+    "reporteFideicomisoPrestaciones",
+    "Anexo_23",
+    "reporteBonosVacacionales",
+    "Anexo_24",
+    "cuadroResumenCargos",
+    "Anexo_25",
+    "cuadroResumenValidadoRRHH",
+    "Anexo_26",
+    "reporteNominas",
+    "Anexo_27",
+    "inventarioBienes",
+    "Anexo_28",
+    "ejecucionPlanOperativo",
+    "Anexo_29",
+    "causasIncumplimientoMetas",
+    "Anexo_30",
+    "planOperativoAnual",
+    "Anexo_31",
+    "clasificacionArchivo",
+    "Anexo_32",
+    "ubicacionFisicaArchivo",
+    "Anexo_33",
+    "relacionMontosFondosAsignados",
+    "Anexo_34",
+    "saldoEfectivoFondos",
+    "Anexo_35",
+    "relacionBienesAsignados",
+    "Anexo_36",
+    "relacionBienesAsignadosUnidadBienes",
+    "Anexo_37",
+    "estadosBancariosConciliados",
+    "Anexo_38",
+    "listaComprobantesGastos",
+    "Anexo_39",
+    "chequesEmitidosPendientesCobro",
+    "Anexo_40",
+    "listadoTransferenciaBancaria",
+    "Anexo_41",
+    "caucionFuncionario",
+    "Anexo_42",
+    "cuadroDemostrativoRecaudado",
+    "Anexo_43",
+    "relacionExpedientesAbiertos",
+    "Anexo_44",
+    "situacionTesoroNacional",
+    "Anexo_45",
+    "infoEjecucionPresupuestoNacional",
+    "Anexo_46",
+    "montoDeudaPublicaNacional",
+    "Anexo_47",
+    "situacionCuentasNacion",
+    "Anexo_48",
+    "situacionTesoroEstadal",
+    "Anexo_49",
+    "infoEjecucionPresupuestoEstadal",
+    "Anexo_50",
+    "situacionCuentasEstado",
+    "Anexo_51",
+    "situacionTesoroDistritalMunicipal",
+    "Anexo_52",
+    "infoEjecucionPresupuestoDistritalMunicipal",
+    "Anexo_53",
+    "situacionCuentasDistritalesMunicipales",
+    "Anexo_54",
+    "inventarioTerrenosEjidos",
+    "Anexo_55",
+    "relacionIngresosVentaTerrenos",
+    "Anexo_56",
+    "observacionesAdicionales",
+    "FirmaAuditoría",
+    "interesProducto"
+];
 
     const newRow = headers.map(header => {
         if (header === 'numeroActa') return numeroActa;
@@ -453,26 +679,26 @@ const createActaSalientePaga = async (req, res) => {
     }
 
     res.status(201).json({ 
-        message: 'Acta Saliente (Paga) creada exitosamente. El procesamiento de anexos comenzará en segundo plano.',
+        message: 'Acta SALIENTE (Paga) creada exitosamente. El procesamiento de anexos comenzará en segundo plano.',
         numeroActa: numeroActa,
         id: id
     });
 
     setTimeout(async () => {
       try {
-        console.log('Iniciando la tarea de copiado de Anexos para Acta Saliente Paga...');
+        console.log('Iniciando la tarea de copiado de Anexos para Acta SALIENTE Paga...');
         const allData = await sheets.getSheetData(ACTA_SALIENTE_PAGA_SHEET);
 
         if (!allData || allData.length < 3) {
-          console.log('No hay suficientes filas para realizar la copia en Acta Saliente Paga.');
+          console.log('No hay suficientes filas para realizar la copia en Acta Entrante Paga.');
           return;
         }
 
-        const sheetHeaders = allData[0];
+        const sheetHeaders = allData[0].map(h => h.trim());
         const sourceRow = allData[1];
         const destinationRowIndex = allData.length;
 
-        const anexoColumnsToCopy = headers.filter(h => h.startsWith('Anexo_') || h.startsWith('ANEXO'));
+        const anexoColumnsToCopy = headers.filter(h => h.startsWith('Anexo_'));
 
         for (const columnName of anexoColumnsToCopy) {
             const columnIndex = sheetHeaders.indexOf(columnName);
@@ -489,16 +715,17 @@ const createActaSalientePaga = async (req, res) => {
             }
 
             const targetRange = `${columnLetter}${destinationRowIndex}`;
-            await sheets.updateCell(ACTA_SALIENTE_PAGA_SHEET, targetRange, valueToCopy);
+            console.log(`Copiando valor para "${columnName}" a la celda ${targetRange}`);
+            await sheets.updateCell(ACTA_SALIENTE_PAGA_SHEET, destinationRowIndex, columnName, valueToCopy);
         }
-        console.log('Copia de Anexos para Acta Saliente Paga completada.');
+        console.log('Copia de Anexos para Acta SALIENTE Paga completada.');
       } catch (copyError) {
-        console.error('Error durante la tarea de copiado para Acta Saliente Paga:', copyError);
+        console.error('Error durante la tarea de copiado para Acta SALIENTE Paga:', copyError);
       }
     }, 30000);
 
   } catch (error) {
-    console.error('Error en createActaSalientePaga:', error);
+    console.error('Error en createActaEntrantePaga:', error);
     res.status(500).json({ message: 'Error interno del servidor.' });
   }
 };

@@ -1,160 +1,163 @@
 const { google } = require('googleapis');
 
-let sheets;
+// --- Configuración ---
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
+const KEYFILEPATH = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
+
+let sheets; // Variable para mantener el cliente autenticado
 
 /**
- * Inicializa el cliente de Google Sheets.
- * Esta función debe ser llamada antes de usar cualquier otra función de este módulo.
+ * Autentica con la API de Google Sheets.
+ * Se llamará automáticamente antes de cualquier operación.
  */
-const init = async () => {
-    try {
-        const auth = new google.auth.GoogleAuth({
-            keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-            scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-        });
-        const authClient = await auth.getClient();
-        sheets = google.sheets({ version: 'v4', auth: authClient });
-        console.log("Google Sheets API inicializada correctamente.");
-    } catch (error) {
-        console.error("Error fatal al inicializar Google Sheets API. El servidor no puede iniciar.", error);
-        process.exit(1);
-    }
-};
+async function authenticate() {
+  // Si ya estamos autenticados, no hacemos nada más.
+  if (sheets) {
+    return;
+  }
+  try {
+    const auth = new google.auth.GoogleAuth({
+      keyFile: KEYFILEPATH,
+      scopes: SCOPES,
+    });
+    const authClient = await auth.getClient();
+    sheets = google.sheets({ version: 'v4', auth: authClient });
+    console.log('Autenticación con Google Sheets exitosa.');
+  } catch (error) {
+    console.error('Error al autenticar con Google Sheets:', error);
+    throw new Error('No se pudo conectar con Google Sheets.');
+  }
+}
 
 /**
  * Obtiene datos de un rango específico de una hoja.
  */
 const getSheetData = async (range) => {
-    if (!sheets) throw new Error("Google Sheets API no inicializada. Llama a init() primero.");
-    try {
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: SPREADSHEET_ID,
-            range,
-        });
-        return response.data.values;
-    } catch (error) {
-        console.error(`Error fetching sheet data for range ${range}:`, error.message);
-        return null;
-    }
+  await authenticate();
+  try {
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range,
+    });
+    return response.data.values;
+  } catch (error) {
+    console.error(`Error al obtener datos del rango ${range}:`, error.message);
+    return null;
+  }
 };
 
 /**
- * Añade una nueva fila de datos al final de una hoja.
+ * Añade una nueva fila de datos al final de una hoja. (VERSIÓN CORREGIDA)
  */
 const appendSheetData = async (sheetName, rowData) => {
-    if (!sheets) throw new Error("Google Sheets API no inicializada. Llama a init() primero.");
-    try {
-        const response = await sheets.spreadsheets.values.append({
-            spreadsheetId: SPREADSHEET_ID,
-            range: sheetName,
-            valueInputOption: 'USER_ENTERED',
-            requestBody: {
-                values: [rowData],
-            },
-        });
-        return response.status === 200;
-    } catch (error) {
-        console.error('Error appending sheet data:', error);
-        return false;
-    }
+  await authenticate();
+  try {
+    const response = await sheets.spreadsheets.values.append({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${sheetName}!A1`,
+      valueInputOption: 'USER_ENTERED',
+      insertDataOption: 'INSERT_ROWS',
+      // ¡CORRECCIÓN CLAVE! Se usa 'resource' en lugar de 'requestBody'
+      resource: {
+        values: [rowData],
+      },
+    });
+    console.log(`Fila añadida correctamente a la hoja "${sheetName}".`);
+    return response.status === 200;
+  } catch (error) {
+    console.error('Error al añadir la fila:', error);
+    return false;
+  }
 };
 
 /**
- * Busca una fila basándose en el valor de una columna de forma eficiente.
- * @returns {Promise<{user: object, rowIndex: number}|null>}
+ * Busca una fila basándose en el valor de una columna. (CONSERVADA)
  */
 const findRowByValueInColumn = async (sheetName, columnName, valueToFind) => {
-    if (!sheets) throw new Error("Google Sheets API no inicializada. Llama a init() primero.");
+    await authenticate();
     try {
-        const allData = await getSheetData(`${sheetName}!A:Z`); // Lee un rango amplio
-        if (!allData || allData.length < 1) {
-            return null;
-        }
+        const allData = await getSheetData(`${sheetName}!A:Z`);
+        if (!allData || allData.length < 1) return null;
 
         const headers = allData[0];
         const columnIndex = headers.indexOf(columnName);
-        if (columnIndex === -1) {
-            throw new Error(`La columna "${columnName}" no fue encontrada.`);
-        }
+        if (columnIndex === -1) throw new Error(`La columna "${columnName}" no fue encontrada.`);
 
-        let foundRowData = null;
-        let sheetRowIndex = -1;
         for (let i = 1; i < allData.length; i++) {
             if (allData[i][columnIndex] === valueToFind) {
-                foundRowData = allData[i];
-                sheetRowIndex = i + 1;
-                break;
+                const userObject = {};
+                headers.forEach((header, index) => {
+                    userObject[header] = allData[i][index] || '';
+                });
+                return { user: userObject, rowIndex: i + 1 };
             }
         }
-
-        if (!foundRowData) {
-            return null;
-        }
-
-        const userObject = {};
-        headers.forEach((header, index) => {
-            userObject[header] = foundRowData[index] || '';
-        });
-
-        return { user: userObject, rowIndex: sheetRowIndex };
+        return null;
     } catch (error) {
-        console.error(`Error en la búsqueda eficiente en "${sheetName}":`, error);
+        console.error(`Error en la búsqueda en "${sheetName}":`, error);
         return null;
     }
 };
 
 /**
- * Actualiza una celda específica usando el número de fila y el nombre de la columna.
+ * Actualiza una celda específica. (CONSERVADA Y CORREGIDA)
  */
 const updateCell = async (sheetName, rowIndex, columnName, value) => {
-    if (!sheets) throw new Error("Google Sheets API no inicializada. Llama a init() primero.");
+    await authenticate();
     try {
-        const headersResponse = await getSheetData(`${sheetName}!1:1`);
-        if (!headersResponse) throw new Error("No se pudieron obtener los encabezados.");
+        const headers = (await getSheetData(`${sheetName}!1:1`))[0];
+        if (!headers) throw new Error("No se pudieron obtener los encabezados.");
 
-        const headers = headersResponse[0];
         const columnIndex = headers.indexOf(columnName);
-        if (columnIndex === -1) {
-            throw new Error(`Columna "${columnName}" no encontrada.`);
-        }
+        if (columnIndex === -1) throw new Error(`Columna "${columnName}" no encontrada.`);
 
-        const columnLetter = String.fromCharCode(65 + columnIndex);
+        const columnToLetter = (colIndex) => {
+            let temp, letter = '';
+            while (colIndex >= 0) {
+                temp = colIndex % 26;
+                letter = String.fromCharCode(temp + 65) + letter;
+                colIndex = Math.floor(colIndex / 26) - 1;
+            }
+            return letter;
+        };
+        const columnLetter = columnToLetter(columnIndex);
         const range = `${sheetName}!${columnLetter}${rowIndex}`;
 
         await sheets.spreadsheets.values.update({
             spreadsheetId: SPREADSHEET_ID,
             range: range,
             valueInputOption: 'USER_ENTERED',
-            requestBody: {
+            // ¡CORRECCIÓN CLAVE!
+            resource: {
                 values: [[value]],
             },
         });
         return true;
     } catch (error) {
-        console.error('Error updating cell:', error);
+        console.error('Error al actualizar la celda:', error);
         return false;
     }
 };
 
 /**
- * Elimina una fila específica de una hoja de cálculo.
+ * Elimina una fila específica. (CONSERVADA Y CORREGIDA)
  */
 const deleteRow = async (sheetName, rowIndex) => {
-    if (!sheets) throw new Error("Google Sheets API no inicializada. Llama a init() primero.");
+    await authenticate();
     try {
-        const sheetMetadata = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
-        const sheet = sheetMetadata.data.sheets.find(s => s.properties.title === sheetName);
+        const { data } = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHE-ET_ID });
+        const sheet = data.sheets.find(s => s.properties.title === sheetName);
         if (!sheet) throw new Error(`Hoja "${sheetName}" no encontrada.`);
-        const sheetId = sheet.properties.sheetId;
-
+        
         await sheets.spreadsheets.batchUpdate({
             spreadsheetId: SPREADSHEET_ID,
-            requestBody: {
+            // ¡CORRECCIÓN CLAVE!
+            resource: {
                 requests: [{
                     deleteDimension: {
                         range: {
-                            sheetId: sheetId,
+                            sheetId: sheet.properties.sheetId,
                             dimension: 'ROWS',
                             startIndex: rowIndex - 1,
                             endIndex: rowIndex,
@@ -170,8 +173,9 @@ const deleteRow = async (sheetName, rowIndex) => {
     }
 };
 
+
+// Exportamos las funciones. Ya no se necesita 'init'.
 module.exports = {
-    init,
     getSheetData,
     appendSheetData,
     findRowByValueInColumn,
