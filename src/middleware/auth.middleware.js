@@ -32,7 +32,31 @@ const isAdmin = (req, res, next) => {
     next();
 };
 
+const authenticateResetToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (token == null) {
+    return res.status(401).json({ message: 'No se proporcionó token de reseteo.' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: 'Token de reseteo no válido o expirado.' });
+    }
+
+    // Asegurarse de que el token es específicamente para reseteo de contraseña
+    if (user.purpose !== 'password-reset') {
+      return res.status(403).json({ message: 'Token no válido para esta operación.' });
+    }
+
+    req.user = user;
+    next();
+  });
+};
+
 module.exports = {
   authenticateToken,
   isAdmin,
+  authenticateResetToken,
 };
