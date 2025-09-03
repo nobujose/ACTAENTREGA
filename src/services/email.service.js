@@ -46,7 +46,7 @@ const sendEmail = async (to, subject, html) => {
  * @returns {Promise<boolean>}
  */
 const sendConfirmationEmail = async (to, token) => {
-  const confirmationUrl = `http://localhost:3000/api/auth/confirm-email/${token}`; // Asumiendo localhost:3000 como URL base
+  const confirmationUrl = `https://actaentrega.onrender.com/api/auth/confirm-email/${token}`; // Asumiendo localhost:3000 como URL base
 
   const htmlContent = `
     <h1>Confirma tu dirección de correo electrónico</h1>
