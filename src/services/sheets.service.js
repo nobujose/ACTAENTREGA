@@ -146,7 +146,7 @@ const updateCell = async (sheetName, rowIndex, columnName, value) => {
 const deleteRow = async (sheetName, rowIndex) => {
     await authenticate();
     try {
-        const { data } = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHE-ET_ID });
+        const { data } = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
         const sheet = data.sheets.find(s => s.properties.title === sheetName);
         if (!sheet) throw new Error(`Hoja "${sheetName}" no encontrada.`);
         
