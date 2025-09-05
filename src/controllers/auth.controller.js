@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
-const { findUserByEmail, createUser, updateUserPassword, findUserByConfirmationToken, verifyUserEmail, deleteUserByEmail, saveOtpForUser, findUserByOtp } = require('../services/user.service');
+const { findUserByEmail, createUser, updateUserPassword, findUserByConfirmationToken, verifyUserEmail, deleteUserByEmail, saveOtpForUser, findUserByOtp, clearOtpForUser } = require('../services/user.service');
 const { sendEmail, sendConfirmationEmail } = require('../services/email.service'); // Importar sendConfirmationEmail
 const { scheduleUserDeletion, cancelUserDeletion } = require('../services/scheduler.service'); // Importar el scheduler
 
@@ -190,11 +190,25 @@ const forgotPasswordController = async (req, res) => {
 
 const resetPasswordController = async (req, res) => {
   try {
-    const { newPassword } = req.body;
+    const { newPassword, confirmPassword } = req.body;
     const { email } = req.user; // Obtenido del token JWT a través de authenticateToken
 
-    if (!newPassword) {
-      return res.status(400).json({ message: 'La nueva contraseña es requerida.' });
+    if (!newPassword || !confirmPassword) {
+      return res.status(400).json({ message: 'La nueva contraseña y la confirmación son requeridas.' });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: 'Las contraseñas no coinciden.' });
+    }
+
+    const user = await findUserByEmail(email);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
+
+    const isSamePassword = await bcrypt.compare(newPassword, user.Password);
+    if (isSamePassword) {
+      return res.status(400).json({ message: 'La nueva contraseña no puede ser igual a la anterior.' });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -222,6 +236,8 @@ const verifyOtpController = async (req, res) => {
     if (now > otpExpiresAt) {
       return res.status(400).json({ message: 'OTP expirado.' });
     }
+
+    await clearOtpForUser(email);
 
     // Generar un token temporal para el reseteo de contraseña
     const resetToken = jwt.sign({ email: user.Usuario, purpose: 'password-reset' }, process.env.JWT_SECRET, { expiresIn: '10m' });
