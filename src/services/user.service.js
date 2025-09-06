@@ -199,6 +199,20 @@ const findUserByOtp = async (otp) => {
   }
 };
 
+const clearOtpForUser = async (email) => {
+  try {
+    const user = await findUserByEmail(email);
+    if (!user) return false;
+
+    await sheets.updateCell(USERS_SHEET, user.rowNum, 'otp', '');
+    await sheets.updateCell(USERS_SHEET, user.rowNum, 'otp_expires_at', '');
+    return true;
+  } catch (error) {
+    console.error('Error al limpiar el OTP para el usuario:', error);
+    return false;
+  }
+};
+
 module.exports = {
   findUserByEmail,
   findUserByResetToken,
@@ -209,4 +223,5 @@ module.exports = {
   deleteUserByEmail, // Exportar la nueva función
   saveOtpForUser,
   findUserByOtp,
+  clearOtpForUser,
 };

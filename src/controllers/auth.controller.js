@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
-const { findUserByEmail, createUser, updateUserPassword, findUserByConfirmationToken, verifyUserEmail, deleteUserByEmail, saveOtpForUser, findUserByOtp } = require('../services/user.service');
+const { findUserByEmail, createUser, updateUserPassword, findUserByConfirmationToken, verifyUserEmail, deleteUserByEmail, saveOtpForUser, findUserByOtp, clearOtpForUser } = require('../services/user.service');
 const { sendEmail, sendConfirmationEmail } = require('../services/email.service'); // Importar sendConfirmationEmail
 const { scheduleUserDeletion, cancelUserDeletion } = require('../services/scheduler.service'); // Importar el scheduler
 
@@ -147,12 +147,8 @@ const confirmEmailController = async (req, res) => {
     // Ejemplo de redirección a una página web:
     // res.redirect('http://your-app-domain.com/email-verified');
 
-    // Para demostración, enviemos un mensaje de éxito y mencionemos la redirección
-    res.send(`
-      <h1>¡Email Verificado Exitosamente!</h1>
-      <p>Tu dirección de correo electrónico ha sido confirmada. Ya puedes usar la aplicación.</p>
-      <p>Si estás en un dispositivo móvil con la app instalada, deberías ser redirigido automáticamente.</p>
-    `);
+    // Redirigir a la página de login con un parámetro de consulta
+    res.redirect(`${process.env.FRONTEND_URL}/login?email_verified=true`);
 
   } catch (error) {
     console.error('Error al confirmar el email:', error);
@@ -190,11 +186,20 @@ const forgotPasswordController = async (req, res) => {
 
 const resetPasswordController = async (req, res) => {
   try {
-    const { newPassword } = req.body;
+    const { newPassword, confirmPassword } = req.body;
     const { email } = req.user; // Obtenido del token JWT a través de authenticateToken
 
-    if (!newPassword) {
-      return res.status(400).json({ message: 'La nueva contraseña es requerida.' });
+    if (!newPassword || !confirmPassword) {
+      return res.status(400).json({ message: 'La nueva contraseña y la confirmación son requeridas.' });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: 'Las contraseñas no coinciden.' });
+    }
+
+    const user = await findUserByEmail(email);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -222,6 +227,8 @@ const verifyOtpController = async (req, res) => {
     if (now > otpExpiresAt) {
       return res.status(400).json({ message: 'OTP expirado.' });
     }
+
+    await clearOtpForUser(email);
 
     // Generar un token temporal para el reseteo de contraseña
     const resetToken = jwt.sign({ email: user.Usuario, purpose: 'password-reset' }, process.env.JWT_SECRET, { expiresIn: '10m' });
