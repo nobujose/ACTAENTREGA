@@ -147,12 +147,8 @@ const confirmEmailController = async (req, res) => {
     // Ejemplo de redirección a una página web:
     // res.redirect('http://your-app-domain.com/email-verified');
 
-    // Para demostración, enviemos un mensaje de éxito y mencionemos la redirección
-    res.send(`
-      <h1>¡Email Verificado Exitosamente!</h1>
-      <p>Tu dirección de correo electrónico ha sido confirmada. Ya puedes usar la aplicación.</p>
-      <p>Si estás en un dispositivo móvil con la app instalada, deberías ser redirigido automáticamente.</p>
-    `);
+    // Redirigir a la página de login con un parámetro de consulta
+    res.redirect(`${process.env.FRONTEND_URL}/login?email_verified=true`);
 
   } catch (error) {
     console.error('Error al confirmar el email:', error);
@@ -204,11 +200,6 @@ const resetPasswordController = async (req, res) => {
     const user = await findUserByEmail(email);
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado.' });
-    }
-
-    const isSamePassword = await bcrypt.compare(newPassword, user.Password);
-    if (isSamePassword) {
-      return res.status(400).json({ message: 'La nueva contraseña no puede ser igual a la anterior.' });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
