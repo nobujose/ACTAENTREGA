@@ -1,28 +1,15 @@
 const nodemailer = require('nodemailer');
 
-// Asumiendo que EMAIL_PORT está definido en .env, si no, podría usar un valor por defecto o causar problemas.
-// Para Gmail, los puertos comunes son 465 (SSL) o 587 (TLS).
-// Las credenciales proporcionadas no especifican un puerto, así que asumiremos que se maneja por process.env.EMAIL_PORT.
-// Si EMAIL_PORT no está configurado, la línea secure: process.env.EMAIL_PORT == 465 podría comportarse de forma inesperada.
-// Es una buena práctica asegurarse de que EMAIL_PORT esté configurado en .env.
-
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
-  port: parseInt(process.env.EMAIL_PORT || '587', 10), // Por defecto a 587 si no se proporciona
-  secure: process.env.EMAIL_PORT == 465, // true para 465, false para otros puertos
+  port: parseInt(process.env.EMAIL_PORT || '587', 10),
+  secure: process.env.EMAIL_PORT == 465,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 });
 
-/**
- * Envía un correo electrónico.
- * @param {string} to - El destinatario del correo.
- * @param {string} subject - El asunto del correo.
- * @param {string} html - El cuerpo del correo en formato HTML.
- * @returns {Promise<boolean>}
- */
 const sendEmail = async (to, subject, html) => {
   try {
     await transporter.sendMail({
@@ -46,7 +33,13 @@ const sendEmail = async (to, subject, html) => {
  * @returns {Promise<boolean>}
  */
 const sendConfirmationEmail = async (to, token) => {
-  const confirmationUrl = `https://actaentrega.onrender.com/api/auth/confirm-email/${token}`; // Asumiendo localhost:3000 como URL base
+  // 1. Usar una variable de entorno para la URL del backend.
+  //    Añade BACKEND_URL a tus variables de entorno en Vercel.
+  //    Ej: https://tu-backend-url.vercel.app
+  const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
+  
+  // 2. Construir el enlace correcto que apunta a tu API.
+  const confirmationUrl = `${backendUrl}/api/auth/confirm-email/${token}`;
 
   const htmlContent = `
     <h1>Confirma tu dirección de correo electrónico</h1>
@@ -60,5 +53,5 @@ const sendConfirmationEmail = async (to, token) => {
 
 module.exports = {
   sendEmail,
-  sendConfirmationEmail, // Exportar la nueva función
+  sendConfirmationEmail,
 };
