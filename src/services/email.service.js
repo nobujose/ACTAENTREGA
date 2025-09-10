@@ -33,13 +33,11 @@ const sendEmail = async (to, subject, html) => {
  * @returns {Promise<boolean>}
  */
 const sendConfirmationEmail = async (to, token) => {
-  // 1. Usar una variable de entorno para la URL del backend.
-  //    Añade BACKEND_URL a tus variables de entorno en Vercel.
-  //    Ej: https://tu-backend-url.vercel.app
-  const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
+  // 1. Usar una variable de entorno para la URL del frontend.
+  const frontendUrl = process.env.FRONTEND_URL || 'https://universitas-actas-entrega.vercel.app';
   
-  // 2. Construir el enlace correcto que apunta a tu API.
-  const confirmationUrl = `${backendUrl}/api/auth/confirm-email/${token}`;
+  // 2. Construir el enlace que apunta al frontend.
+  const confirmationUrl = `${frontendUrl}/confirmar-email?token=${token}`;
 
   const htmlContent = `
     <h1>Confirma tu dirección de correo electrónico</h1>

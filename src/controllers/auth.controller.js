@@ -121,38 +121,29 @@ const confirmEmailController = async (req, res) => {
     const user = await findUserByConfirmationToken(token); // Usar la nueva función del servicio
 
     if (!user) {
-      return res.status(400).send('Token de confirmación inválido o expirado.');
+      return res.status(404).json({ message: 'Token de confirmación inválido o expirado.' });
     }
 
     // Verificar si ya está verificado
     if (user['email_confirmation'] === 'TRUE' || user['email_confirmation'] === true) {
-      return res.send('Tu dirección de correo electrónico ya ha sido verificada.');
+      return res.status(400).json({ message: 'Tu dirección de correo electrónico ya ha sido verificada.' });
     }
 
     // Marcar usuario como verificado
     const updateSuccess = await verifyUserEmail(user.Usuario); // Usar la nueva función del servicio, pasando el email como identificador
 
     if (!updateSuccess) {
-        return res.status(500).send('Ocurrió un error al actualizar el estado de verificación.');
+        return res.status(500).json({ message: 'Ocurrió un error al actualizar el estado de verificación.' });
     }
 
     // Cancelar la eliminación programada del usuario
     cancelUserDeletion(user.Usuario);
 
-    // Lógica de redirección
-    // Esta parte necesita una implementación cuidadosa basada en cómo las aplicaciones móviles manejan los deep links.
-    // Para la web, podemos redirigir a una página de confirmación.
-    // Una solución más robusta implicaría verificar el User-Agent o un parámetro de consulta.
-
-    // Ejemplo de redirección a una página web:
-    // res.redirect('http://your-app-domain.com/email-verified');
-
-    // Redirigir a la página de login con un parámetro de consulta
-    res.redirect(`${process.env.FRONTEND_URL}/login?email_verified=true`);
+    res.status(200).json({ message: 'Email verificado exitosamente.' });
 
   } catch (error) {
     console.error('Error al confirmar el email:', error);
-    res.status(500).send('Ocurrió un error al confirmar tu correo electrónico.');
+    res.status(500).json({ message: 'Ocurrió un error al confirmar tu correo electrónico.' });
   }
 };
 
