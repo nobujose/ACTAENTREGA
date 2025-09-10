@@ -300,7 +300,7 @@ const createActaMaximaAutoridadPaga = async (req, res) => {
         "incluyeUbicacionFisicaArchivo",
         "Anexo_33", 
         "Anexo_VI",
-        "Anexos_VII",
+        "Anexo_VII",
         "disponeRelacionMontosFondosAsignados",
         "Anexo_34",
         "disponeSaldoEfectivoFondos", 
