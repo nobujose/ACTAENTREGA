@@ -34,7 +34,7 @@ const sendEmail = async (to, subject, html) => {
  */
 const sendConfirmationEmail = async (to, token) => {
   // 1. Usar una variable de entorno para la URL del frontend.
-  const frontendUrl = process.env.FRONTEND_URL || 'https://acta-entrega.netlify.app/login';
+  const frontendUrl = process.env.FRONTEND_URL || 'https://acta-entrega.netlify.app';
   
   // 2. Construir el enlace que apunta al frontend.
   const confirmationUrl = `${frontendUrl}/verificar-email?token=${token}`;
