@@ -8,9 +8,6 @@ const sheets = require('./services/sheets.service'); // Importar el servicio
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ▼▼▼ AÑADE ESTA LÍNEA AQUÍ ▼▼▼
-app.set('trust proxy', 1); // Confía en el primer proxy (el de Render)
-
 // --- 3. Middlewares ---
 app.use(cors()); // Habilita CORS para todas las rutas
 app.use(express.json()); // Permite al servidor entender JSON en el cuerpo de las peticiones
