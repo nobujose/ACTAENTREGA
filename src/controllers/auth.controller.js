@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const { findUserByEmail, createUser, updateUserPassword, findUserByConfirmationToken, verifyUserEmail, deleteUserByEmail, saveOtpForUser, findUserByOtp, clearOtpForUser } = require('../services/user.service');
-const { sendEmail, sendConfirmationEmail } = require('../services/email.service'); // Importar sendConfirmationEmail
+const { sendConfirmationEmail, sendPasswordResetEmail } = require('../services/email.service');
 const { scheduleUserDeletion, cancelUserDeletion } = require('../services/scheduler.service'); // Importar el scheduler
 
 const loginController = async (req, res) => {
@@ -150,6 +150,10 @@ const confirmEmailController = async (req, res) => {
 
 // Marcador de posición para otras funciones a añadir más tarde
 const registerProfileController = async (req, res) => { res.status(501).send('Not Implemented'); };
+
+
+// ...
+
 const forgotPasswordController = async (req, res) => {
   try {
     const { email } = req.body;
@@ -162,11 +166,8 @@ const forgotPasswordController = async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     await saveOtpForUser(email, otp);
 
-    await sendEmail(
-      email,
-      'Código de Recuperación de Contraseña',
-      `Tu código de recuperación es: ${otp}`
-    );
+    // 2. Llama a la nueva función estilizada, pasando el email, el OTP y el nombre del usuario
+    await sendPasswordResetEmail(email, otp, user.Nombre); // Asumiendo que la columna se llama 'Nombre'
 
     res.json({ message: 'Se ha enviado un código de recuperación a tu correo electrónico.' });
   } catch (error) {
