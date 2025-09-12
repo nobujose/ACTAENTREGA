@@ -97,7 +97,7 @@ const registerCredentialsController = async (req, res) => {
         }
 
         // Enviar correo de confirmación con el token devuelto
-        await sendConfirmationEmail(email, confirmationToken);
+        await sendConfirmationEmail(email, confirmationToken, name); 
         res.status(201).json({ message: 'Usuario registrado exitosamente. Por favor, revisa tu correo electrónico para confirmar tu cuenta.' });
 
         // Programar la eliminación del usuario si no confirma el email en 10 minutos
