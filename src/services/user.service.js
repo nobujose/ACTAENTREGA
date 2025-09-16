@@ -85,31 +85,51 @@ const findUserByConfirmationToken = async (token) => {
   }
 };
 
+// ▼▼▼ REEMPLAZA LA FUNCIÓN createUser CON ESTA VERSIÓN CORREGIDA ▼▼▼
 /**
- * Crea un nuevo usuario en la hoja de cálculo, generando un token de confirmación.
- * @param {Array<any>} userDataArray - Array con los datos del usuario en el orden de las columnas.
- * @returns {Promise<string|null>} - El token de confirmación si se crea con éxito, de lo contrario null.
+ * Crea un nuevo usuario en la hoja de cálculo, coincidiendo con la estructura de 15 columnas.
+ * @param {Array<any>} userDataArray - Array con los datos iniciales [ID, Usuario, Password, Nombre, Apellido, Telefono].
+ * @returns {Promise<string|null>} - El token de confirmación.
  */
 const createUser = async (userDataArray) => {
     try {
-        // Generar un token de confirmación
-        const token = crypto.randomBytes(20).toString('hex');
-        const isEmailVerified = false;
-        const registrationTimestamp = new Date().toISOString(); // Registrar el timestamp de registro
+        const [id, email, password, nombre, apellido, telefono] = userDataArray;
 
-        // Asumiendo que el orden de las columnas es: ID, Usuario, Password, Nombre, Apellido, Telefono, institución, Cargo
-        // Y las nuevas columnas se añaden al final.
-        // Índices de columna: 0=ID, 1=Usuario, 2=Password, 3=Nombre, 4=Apellido, 5=Telefono, 6=institución, 7=Cargo
-        // Nuevas columnas: 8=email_confirmation, 9=ail_confirmat, 10=Rol, 11=registration_timestamp
-        const newUserRowData = [...userDataArray, isEmailVerified, token, 'User', registrationTimestamp]; // Añadir Rol por defecto y timestamp
+        // Generamos los valores necesarios para el registro
+        const token = crypto.randomBytes(20).toString('hex');
+        const isEmailVerified = 'FALSE';
+        const rol = 'User';
+        const isFirstLogin = 'TRUE'; // ¡Clave! Marcamos al nuevo usuario para que vea el popup.
+
+        // Creamos la fila completa con 15 columnas, en el orden exacto de tu hoja.
+        // Los campos que se llenan después (como otp o plazoEntrega) se dejan vacíos.
+        const newUserRowData = [
+            id,                     // 1. ID
+            email,                  // 2. Usuario
+            password,               // 3. Password
+            nombre,                 // 4. Nombre
+            apellido,               // 5. Apellido
+            telefono,               // 6. Telefono
+            isEmailVerified,        // 7. email_confirmation
+            token,                  // 8. ail_confirmat (token de confirmación)
+            '',                     // 9. otp (vacío)
+            '',                     // 10. otp_expires_at (vacío)
+            rol,                    // 11. Rol
+            new Date().toLocaleTimeString(), // 12. hora
+            new Date().toLocaleDateString(), // 13. fecha
+            '',                     // 14. plazoEntregaActa (vacío)
+            isFirstLogin,           // 15. isFirstLogin
+        ];
 
         const success = await sheets.appendSheetData(USERS_SHEET, newUserRowData);
         return success ? token : null;
+
     } catch (error) {
         console.error('Error al crear usuario en el servicio:', error);
         return null;
     }
 };
+// ▲▲▲ FIN DE LA FUNCIÓN CORREGIDA ▲▲▲
 
 /**
  * Actualiza el estado de verificación de email de un usuario.
