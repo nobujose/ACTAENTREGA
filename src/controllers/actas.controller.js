@@ -369,6 +369,16 @@ const createActaMaximaAutoridadPaga = async (req, res) => {
       return res.status(500).json({ message: 'Error al guardar el acta en la hoja de cálculo.' });
     }
 
+    // ▼▼▼ AÑADE ESTE BLOQUE ▼▼▼
+    try {
+        // Cambiamos el EventType para que sea específico
+        const eventData = [new Date().toISOString(), req.user.email, 'CreacionActaMaximaAutoridadPaga', `Acta #${numeroActa}`];
+        await sheets.logEvent('SeguimientoUsuarios', eventData);
+    } catch (logError) {
+        console.error('Error al registrar el evento de seguimiento:', logError);
+    }
+    // ▲▲▲ FIN DEL BLOQUE ▲▲▲
+
     // Enviar respuesta inmediata al cliente
     res.status(201).json({ 
         message: 'Acta Máxima Autoridad (Paga) creada exitosamente. El procesamiento de anexos comenzará en segundo plano.',
@@ -618,6 +628,16 @@ const createActaEntrantePaga = async (req, res) => {
       return res.status(500).json({ message: 'Error al guardar el acta en la hoja de cálculo.' });
     }
 
+    // ▼▼▼ AÑADE ESTE BLOQUE ▼▼▼
+    try {
+        // Cambiamos el EventType para que sea específico
+        const eventData = [new Date().toISOString(), req.user.email, 'CreacionActaMaximaAutoridadPaga', `Acta #${numeroActa}`];
+        await sheets.logEvent('SeguimientoUsuarios', eventData);
+    } catch (logError) {
+        console.error('Error al registrar el evento de seguimiento:', logError);
+    }
+    // ▲▲▲ FIN DEL BLOQUE ▲▲▲
+
     res.status(201).json({ 
         message: 'Acta Entrante (Paga) creada exitosamente. El procesamiento de anexos comenzará en segundo plano.',
         numeroActa: numeroActa,
@@ -840,6 +860,16 @@ const createActaSalientePaga = async (req, res) => {
     if (!success) {
       return res.status(500).json({ message: 'Error al guardar el acta en la hoja de cálculo.' });
     }
+
+    // ▼▼▼ AÑADE ESTE BLOQUE ▼▼▼
+    try {
+        // Cambiamos el EventType para que sea específico
+        const eventData = [new Date().toISOString(), req.user.email, 'CreacionActaMaximaAutoridadPaga', `Acta #${numeroActa}`];
+        await sheets.logEvent('SeguimientoUsuarios', eventData);
+    } catch (logError) {
+        console.error('Error al registrar el evento de seguimiento:', logError);
+    }
+    // ▲▲▲ FIN DEL BLOQUE ▲▲▲
 
     res.status(201).json({ 
         message: 'Acta SALIENTE (Paga) creada exitosamente. El procesamiento de anexos comenzará en segundo plano.',

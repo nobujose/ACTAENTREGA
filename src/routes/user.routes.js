@@ -1,3 +1,4 @@
+// src/routes/user.routes.js
 const { Router } = require('express');
 const {
   getProfile,
@@ -5,7 +6,8 @@ const {
   verifyPasswordController,
   changePasswordController,
   getAllUsers,
-  updateUserRole
+  updateUserRole,
+  completeInitialProfile // <-- 1. Importamos la nueva función del controlador
 } = require('../controllers/user.controller');
 const { authenticateToken, isAdmin } = require('../middleware/auth.middleware');
 
@@ -22,6 +24,10 @@ router.route('/profile')
 // Cambiar contraseña
 router.post('/password/verify', verifyPasswordController);
 router.put('/password/change', changePasswordController);
+
+// ▼▼▼ 2. AÑADIMOS LA NUEVA RUTA AQUÍ ▼▼▼
+// Ruta para guardar los datos del popup del primer inicio de sesión
+router.post('/complete-profile', completeInitialProfile);
 
 // --- RUTAS SOLO PARA ADMINS ---
 router.get('/admin/users', isAdmin, getAllUsers);

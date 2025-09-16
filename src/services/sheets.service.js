@@ -171,6 +171,31 @@ const deleteRow = async (sheetName, rowIndex) => {
         console.error('Error al eliminar la fila:', error);
         return false;
     }
+
+};
+/**
+ * Añade una fila de evento a una hoja de seguimiento.
+ * @param {string} sheetName - El nombre de la hoja de seguimiento.
+ * @param {Array<any>} eventData - Un array con los datos del evento.
+ */
+const logEvent = async (sheetName, eventData) => {
+  await authenticate();
+  try {
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${sheetName}!A1`,
+      valueInputOption: 'USER_ENTERED',
+      insertDataOption: 'INSERT_ROWS',
+      resource: {
+        values: [eventData],
+      },
+    });
+    console.log(`Evento registrado correctamente en la hoja "${sheetName}".`);
+    return true;
+  } catch (error) {
+    console.error(`Error al registrar el evento en la hoja "${sheetName}":`, error);
+    return false;
+  }
 };
 
 
@@ -181,4 +206,5 @@ module.exports = {
     findRowByValueInColumn,
     updateCell,
     deleteRow,
+    logEvent, // <-- Añade la nueva función
 };

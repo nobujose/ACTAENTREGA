@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const {
+  logoutController, // <-- Añade la nueva función al export
   loginController,
   registerCredentialsController,
   // registerProfileController, // Comentado porque no está implementado
@@ -37,5 +38,7 @@ router.post('/reset-password', authenticateResetToken, resetPasswordController);
 
 // Ruta para confirmar el email
 router.get('/confirm-email/:token', confirmEmailController); // Ruta de confirmación añadida
-
+// ▼▼▼ 2. AÑADE ESTA NUEVA RUTA ▼▼▼
+// Esta ruta requiere autenticación porque necesita saber qué usuario está cerrando sesión
+router.post('/logout', authenticateToken, logoutController);
 module.exports = router;

@@ -4,7 +4,8 @@ const { v4: uuidv4 } = require('uuid');
 const { findUserByEmail, createUser, updateUserPassword, findUserByConfirmationToken, verifyUserEmail, deleteUserByEmail, saveOtpForUser, findUserByOtp, clearOtpForUser } = require('../services/user.service');
 const { sendConfirmationEmail, sendPasswordResetEmail } = require('../services/email.service');
 const { scheduleUserDeletion, cancelUserDeletion } = require('../services/scheduler.service'); // Importar el scheduler
-
+const sheets = require('../services/sheets.service'); // Asegúrate de que sheets está importado
+// ▼▼▼ REEMPLAZA TU FUNCIÓN DE LOGIN CON ESTA ▼▼▼
 const loginController = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -12,7 +13,7 @@ const loginController = async (req, res) => {
       return res.status(400).json({ message: 'Email y contraseña son requeridos.' });
     }
 
-    const user = await findUserByEmail(email); // Usar findUserByEmail para obtener los datos del usuario incluyendo los nuevos campos
+    const user = await findUserByEmail(email);
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado.' });
     }
@@ -21,32 +22,56 @@ const loginController = async (req, res) => {
     if (!isPasswordCorrect) {
       return res.status(401).json({ message: 'Contraseña incorrecta.' });
     }
-
-    // Verificar si el email está verificado antes de permitir el inicio de sesión
+    
+    // Corregimos la lógica de verificación de email
     if (user['email_confirmation'] !== 'TRUE' && user['email_confirmation'] !== true) {
         return res.status(403).json({ message: 'Por favor, verifica tu dirección de correo electrónico para acceder.' });
     }
 
+    // ¡AQUÍ ESTÁ EL CAMBIO CLAVE!
+    // Leemos el valor de 'isFirstLogin' y lo incluimos en la respuesta.
     const tokenPayload = {
       email: user.Usuario,
       name: user.Nombre,
-      // Asumiendo que 'Rol' es el nombre de campo correcto para el rol
       role: user.Rol,
-      is_email_verified: user['email_confirmation'], // Usar el nombre de columna correcto para el estado de verificación
+      is_email_verified: true, // Si llegó hasta aquí, el email está verificado
+      isFirstLogin: user.isFirstLogin === 'TRUE' || user.isFirstLogin === true,
     };
 
     const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '1h' });
+    // ▼▼▼ AÑADE ESTE BLOQUE ▼▼▼
+    try {
+        const eventData = [new Date().toISOString(), email, 'Login', 'Inicio de sesión exitoso'];
+        await sheets.logEvent('SeguimientoUsuarios', eventData);
+    } catch (logError) {
+        console.error('Error al registrar el evento de login:', logError);
+    }
+    // ▲▲▲ FIN DEL BLOQUE ▲▲▲
 
     res.json({
       message: 'Login exitoso.',
       token,
-      user: tokenPayload,
+      user: tokenPayload, // El frontend ahora recibirá el estado de isFirstLogin
     });
   } catch (error) {
     console.error('Error en el login:', error);
     res.status(500).json({ message: 'Error interno del servidor.' });
   }
 };
+// ▲▲▲ FIN DE LA FUNCIÓN MODIFICADA ▲▲▲
+const logoutController = async (req, res) => {
+  try {
+    const { email } = req.user; // Obtenemos el email del token que nos envían
+    const eventData = [new Date().toISOString(), email, 'Logout', 'Cierre de sesión'];
+    await sheets.logEvent('SeguimientoUsuarios', eventData);
+    res.status(200).json({ message: 'Logout registrado.' });
+  } catch (error) {
+    console.error('Error al registrar el evento de logout:', error);
+    res.status(500).json({ message: 'Error interno del servidor.' });
+  }
+};
+
+// --- (El resto de las funciones como registerCredentialsController, etc., no cambian)
 
 const registerCredentialsController = async (req, res) => {
     try {
@@ -94,6 +119,16 @@ const registerCredentialsController = async (req, res) => {
 
         if (!confirmationToken) {
             return res.status(500).json({ message: 'No se pudo registrar al usuario.' });
+            
+        }
+
+        // ▼▼▼ AQUÍ SE AÑADE LA NUEVA FUNCIONALIDAD ▼▼▼
+        // Justo después de confirmar que el usuario fue creado, registramos el evento.
+        try {
+            const eventData = [new Date().toISOString(), email, 'Registro', 'Nuevo usuario creado'];
+            await sheets.logEvent('SeguimientoUsuarios', eventData);
+        } catch (logError) {
+            console.error('Error al registrar el evento de seguimiento:', logError);
         }
 
         // Enviar correo de confirmación con el token devuelto
@@ -107,6 +142,8 @@ const registerCredentialsController = async (req, res) => {
         console.error('Error en el registro:', error);
         res.status(500).json({ message: 'Error interno del servidor.' });
     }
+
+    
 };
 
 /**
@@ -243,4 +280,5 @@ module.exports = {
   verifyOtpController,
   verifyAccountController,
   confirmEmailController, // Exportar la nueva función del controlador
+  logoutController, // <-- Añade la nueva función al exporte
 };
