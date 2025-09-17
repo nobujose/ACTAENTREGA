@@ -23,41 +23,35 @@ const loginController = async (req, res) => {
       return res.status(401).json({ message: 'Contraseña incorrecta.' });
     }
     
-    // Corregimos la lógica de verificación de email
     if (user['email_confirmation'] !== 'TRUE' && user['email_confirmation'] !== true) {
         return res.status(403).json({ message: 'Por favor, verifica tu dirección de correo electrónico para acceder.' });
     }
 
     // ¡AQUÍ ESTÁ EL CAMBIO CLAVE!
-    // Leemos el valor de 'isFirstLogin' y lo incluimos en la respuesta.
+    // Ahora incluimos el 'apellido' en el objeto que se envía al frontend.
     const tokenPayload = {
       email: user.Usuario,
       name: user.Nombre,
+      apellido: user.Apellido, // <-- AÑADIMOS ESTA LÍNEA
       role: user.Rol,
-      is_email_verified: true, // Si llegó hasta aquí, el email está verificado
+      is_email_verified: true,
       isFirstLogin: user.isFirstLogin === 'TRUE' || user.isFirstLogin === true,
     };
 
     const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '1h' });
-    // ▼▼▼ AÑADE ESTE BLOQUE ▼▼▼
-    try {
-        const eventData = [new Date().toISOString(), email, 'Login', 'Inicio de sesión exitoso'];
-        await sheets.logEvent('SeguimientoUsuarios', eventData);
-    } catch (logError) {
-        console.error('Error al registrar el evento de login:', logError);
-    }
-    // ▲▲▲ FIN DEL BLOQUE ▲▲▲
 
     res.json({
       message: 'Login exitoso.',
       token,
-      user: tokenPayload, // El frontend ahora recibirá el estado de isFirstLogin
+      user: tokenPayload, // El frontend ahora recibirá el apellido
     });
   } catch (error) {
     console.error('Error en el login:', error);
     res.status(500).json({ message: 'Error interno del servidor.' });
   }
 };
+// ▲▲▲ FIN DE LA FUNCIÓN MODIFICADA ▲▲▲
+
 // ▲▲▲ FIN DE LA FUNCIÓN MODIFICADA ▲▲▲
 const logoutController = async (req, res) => {
   try {
