@@ -7,6 +7,7 @@ const {
   changePasswordController,
   getAllUsers,
   updateUserRole,
+  deleteAccountController,
   completeInitialProfile // <-- 1. Importamos la nueva función del controlador
 } = require('../controllers/user.controller');
 const { authenticateToken, isAdmin } = require('../middleware/auth.middleware');
@@ -33,4 +34,6 @@ router.post('/complete-profile', completeInitialProfile);
 router.get('/admin/users', isAdmin, getAllUsers);
 router.put('/admin/role', isAdmin, updateUserRole);
 
+// ▼▼▼ 2. AÑADE ESTA NUEVA RUTA ▼▼▼
+router.delete('/delete-account', authenticateToken, deleteAccountController);
 module.exports = router;
