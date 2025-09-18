@@ -5,7 +5,8 @@ const USERS_SHEET = 'Login';
 const EMAIL_CONFIRMATION_TOKEN_COLUMN = 'ail_confirmat'; // Corregido según la imagen del usuario
 const IS_EMAIL_VERIFIED_COLUMN = 'email_confirmation'; // Corregido según el log de encabezados
 const REGISTRATION_TIMESTAMP_COLUMN = 'registration_timestamp'; // Nueva columna para el timestamp
-
+const POPUP_DATA_SHEET = 'PopupData';
+const CHAT_HISTORY_SHEET = 'HistorialChat'
 // Helper para obtener la letra de la columna a partir del índice (basado en 0)
 // A=0, B=1, ..., Z=25, AA=26, AB=27, ...
 const getColumnLetter = (colIndex) => {
@@ -154,26 +155,6 @@ const verifyUserEmail = async (userIdentifier) => {
     }
 };
 
-/**
- * Elimina una fila específica de una hoja de cálculo.
- * @param {string} email - El email del usuario a eliminar.
- * @returns {Promise<boolean>}
- */
-const deleteUserByEmail = async (email) => {
-    try {
-        const user = await findUserByEmail(email);
-        if (!user || user.rowNum === undefined) {
-            console.error('Usuario no encontrado para eliminar.');
-            return false;
-        }
-        return await sheets.deleteRow(USERS_SHEET, user.rowNum);
-    } catch (error) {
-        console.error('Error al eliminar usuario por email:', error);
-        return false;
-    }
-};
-
-
 const updateUserPassword = async (email, newPassword) => {
   try {
     const user = await findUserByEmail(email);
@@ -181,7 +162,6 @@ const updateUserPassword = async (email, newPassword) => {
       console.error('Usuario no encontrado para actualizar contraseña.');
       return false;
     }
-
     return await sheets.updateCell(USERS_SHEET, user.rowNum, 'Password', newPassword);
   } catch (error) {
     console.error('Error al actualizar la contraseña del usuario en el servicio:', error);
@@ -189,6 +169,68 @@ const updateUserPassword = async (email, newPassword) => {
   }
 };
 
+/**
+ * Elimina una fila específica de una hoja de cálculo.
+ * @param {string} email - El email del usuario a eliminar.
+ * @returns {Promise<boolean>}
+ */
+// ▼▼▼ FUNCIÓN deleteUserByEmail MEJORADA ▼▼▼
+/**
+ * Elimina todas las filas asociadas a un email en múltiples hojas.
+ * @param {string} email - El email del usuario a eliminar.
+ * @returns {Promise<boolean>} - True si todas las eliminaciones fueron exitosas.
+ */
+const deleteUserByEmail = async (email) => {
+    try {
+        console.log(`Iniciando proceso de eliminación para el usuario: ${email}`);
+
+        const userLogin = await findUserByEmail(email);
+        if (userLogin && userLogin.rowNum) {
+            await sheets.deleteRow(USERS_SHEET, userLogin.rowNum);
+            console.log(`Usuario eliminado de la hoja: ${USERS_SHEET}`);
+        }
+
+        const userPopupData = await findPopupDataByEmail(email);
+        if (userPopupData && userPopupData.rowNum) {
+            await sheets.deleteRow(POPUP_DATA_SHEET, userPopupData.rowNum);
+            console.log(`Datos del popup eliminados de la hoja: ${POPUP_DATA_SHEET}`);
+        }
+
+        const chatHistory = await sheets.getSheetData(CHAT_HISTORY_SHEET);
+        if (chatHistory) {
+            const userEmailColumnIndex = chatHistory[0].indexOf('UserEmail');
+            if (userEmailColumnIndex !== -1) {
+                for (let i = chatHistory.length - 1; i > 0; i--) {
+                    if (chatHistory[i][userEmailColumnIndex] === email) {
+                        await sheets.deleteRow(CHAT_HISTORY_SHEET, i + 1);
+                        console.log(`Fila ${i + 1} eliminada del historial de chat.`);
+                    }
+                }
+            }
+        }
+
+        console.log(`Proceso de eliminación completado para: ${email}`);
+        return true;
+    } catch (error) {
+        console.error('Error durante la eliminación de datos del usuario:', error);
+        return false;
+    }
+};
+/**
+ * Busca los datos del popup de un usuario por su email.
+ * @param {string} email - El email a buscar.
+ * @returns {Promise<object|null>} - Objeto con los datos del popup.
+ */
+const findPopupDataByEmail = async (email) => {
+  try {
+    // Asume que la primera columna en PopupData es 'UserEmail'
+    const result = await sheets.findRowByValueInColumn('PopupData', 'UserEmail', email);
+    return result ? result.user : null;
+  } catch (error) {
+    console.error('Error al buscar datos del popup por email:', error);
+    return null;
+  }
+};
 const saveOtpForUser = async (email, otp) => {
   try {
     const user = await findUserByEmail(email);
@@ -208,9 +250,8 @@ const findUserByOtp = async (otp) => {
   try {
     const result = await sheets.findRowByValueInColumn(USERS_SHEET, 'otp', otp);
     if (result && result.user) {
-        const userObject = result.user;
-        userObject.rowNum = result.rowIndex;
-        return userObject;
+        result.user.rowNum = result.rowIndex;
+        return result.user;
     }
     return null;
   } catch (error) {
@@ -233,6 +274,9 @@ const clearOtpForUser = async (email) => {
   }
 };
 
+
+
+
 module.exports = {
   findUserByEmail,
   findUserByResetToken,
@@ -244,4 +288,5 @@ module.exports = {
   saveOtpForUser,
   findUserByOtp,
   clearOtpForUser,
+  findPopupDataByEmail, // <-- Añade la nueva función
 };
