@@ -38,7 +38,7 @@ const loginController = async (req, res) => {
       isFirstLogin: user.isFirstLogin === 'TRUE' || user.isFirstLogin === true,
     };
 
-    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '2h' });
 
     res.json({
       message: 'Login exitoso.',
@@ -52,20 +52,38 @@ const loginController = async (req, res) => {
 };
 // ▲▲▲ FIN DE LA FUNCIÓN MODIFICADA ▲▲▲
 
-// ▲▲▲ FIN DE LA FUNCIÓN MODIFICADA ▲▲▲
+// ▼▼▼ REEMPLAZA TU FUNCIÓN DE LOGOUT CON ESTA VERSIÓN COMBINADA ▼▼▼
 const logoutController = async (req, res) => {
   try {
-    const { email } = req.user; // Obtenemos el email del token que nos envían
-    const eventData = [new Date().toISOString(), email, 'Logout', 'Cierre de sesión'];
-    await sheets.logEvent('SeguimientoUsuarios', eventData);
-    res.status(200).json({ message: 'Logout registrado.' });
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    
+    if (!token) {
+        return res.status(400).json({ message: 'No se proporcionó token.' });
+    }
+
+    // Decodificamos el token para obtener el email y la fecha de expiración
+    const decoded = jwt.decode(token);
+    
+    if (decoded && decoded.email) {
+        // 1. Registramos el evento de cierre de sesión
+        const eventData = [new Date().toISOString(), decoded.email, 'Logout', 'Cierre de sesión'];
+        await sheets.logEvent('SeguimientoUsuarios', eventData);
+        
+        // 2. Añadimos el token a la lista negra para invalidarlo
+        const expiry = decoded.exp ? new Date(decoded.exp * 1000).toISOString() : new Date().toISOString();
+        await sheets.appendSheetData('TokenDenylist', [token, expiry]);
+
+        console.log(`[Logout] Cierre de sesión registrado y token invalidado para el usuario: ${decoded.email}`);
+    }
+
+    res.status(200).json({ message: 'Sesión cerrada en el servidor.' });
+
   } catch (error) {
-    console.error('Error al registrar el evento de logout:', error);
+    console.error('Error en logoutController:', error);
     res.status(500).json({ message: 'Error interno del servidor.' });
   }
 };
-
-// --- (El resto de las funciones como registerCredentialsController, etc., no cambian)
 
 const registerCredentialsController = async (req, res) => {
     try {
