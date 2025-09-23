@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const {
+   refreshTokenController, // <-- 1. Importa la nueva función
   logoutController, // <-- Añade la nueva función al export
   loginController,
   registerCredentialsController,
@@ -17,6 +18,8 @@ const { registerLimiter } = require('../middleware/rateLimiter.middleware'); // 
 
 const router = Router();
 
+// Esta ruta requiere un token válido (aunque esté a punto de expirar)
+router.post('/refresh-token', authenticateToken, refreshTokenController);
 // Ruta de Login
 router.post('/login', loginLimiter, validateLogin, loginController); // Aplicar limitación de tasa y validación
 
