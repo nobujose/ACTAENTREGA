@@ -38,7 +38,7 @@ const loginController = async (req, res) => {
       isFirstLogin: user.isFirstLogin === 'TRUE' || user.isFirstLogin === true,
     };
 
-    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '2h' });
+    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '3h' });
 
     res.json({
       message: 'Login exitoso.',
@@ -49,6 +49,31 @@ const loginController = async (req, res) => {
     console.error('Error en el login:', error);
     res.status(500).json({ message: 'Error interno del servidor.' });
   }
+};
+
+const refreshTokenController = (req, res) => {
+  // El middleware 'authenticateToken' ya ha verificado el token antiguo.
+  // req.user contiene los datos del usuario del token anterior.
+  const userPayload = req.user;
+
+  // Creamos un nuevo payload sin la información de expiración antigua
+  const tokenPayload = {
+    email: userPayload.email,
+    name: userPayload.name,
+    apellido: userPayload.apellido,
+    role: userPayload.role,
+    is_email_verified: userPayload.is_email_verified,
+    isFirstLogin: false, // Asumimos que si refresca, ya no es su primer login
+  };
+
+  // Firmamos un nuevo token con una nueva expiración de 2 horas
+  const newToken = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '2h' });
+
+  res.json({
+    message: 'Token refrescado exitosamente.',
+    token: newToken,
+    user: tokenPayload,
+  });
 };
 // ▲▲▲ FIN DE LA FUNCIÓN MODIFICADA ▲▲▲
 
@@ -293,4 +318,5 @@ module.exports = {
   verifyAccountController,
   confirmEmailController, // Exportar la nueva función del controlador
   logoutController, // <-- Añade la nueva función al exporte
+  refreshTokenController, // <-- Añade la nueva función al exporte
 };
