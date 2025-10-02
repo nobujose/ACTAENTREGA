@@ -1,35 +1,35 @@
 // src/services/email.service.js
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-// 1. CONFIGURACIÓN DEL TRANSPORTER
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: parseInt(process.env.EMAIL_PORT || '587', 10),
-  secure: process.env.EMAIL_PORT == 465, // true para puerto 465, false para otros
-  auth: {
-    user: process.env.EMAIL_USER, // ej: universitas.legaltech@gmail.com
-    pass: process.env.EMAIL_PASS, // La contraseña de aplicación de 16 letras
-  },
-});
+// 1. CONFIGURACIÓN DE RESEND
+// La API key se toma automáticamente de la variable de entorno RESEND_API_KEY
+const resend = new Resend(process.env.RESEND_API_KEY);
+const fromEmail = process.env.FROM_EMAIL; // ej: 'noreply@universitasdev.com'
 
-// 2. FUNCIÓN BASE PARA ENVIAR CORREOS
+// 2. FUNCIÓN BASE PARA ENVIAR CORREOS CON RESEND
 const sendEmail = async (to, subject, html) => {
+  if (!fromEmail) {
+    console.error('Error: La variable de entorno FROM_EMAIL no está configurada.');
+    return false;
+  }
+
   try {
-    await transporter.sendMail({
-      from: `"Universitas - Actas de Entrega" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: fromEmail,
       to,
       subject,
       html,
     });
-    console.log(`Correo enviado a ${to}`);
+    console.log(`Correo enviado a ${to} a través de Resend`);
     return true;
   } catch (error) {
-    console.error(`Error al enviar correo a ${to}:`, error);
+    console.error(`Error al enviar correo con Resend a ${to}:`, error);
     return false;
   }
 };
 
-// 3. FUNCIÓN PARA EL CORREO DE CONFIRMACIÓN DE CUENTA
+// 3. FUNCIÓN PARA EL CORREO DE CONFIRMACIÓN DE CUENTA (SIN CAMBIOS)
+// Esta función sigue igual, ya que solo prepara el contenido y llama a sendEmail.
 const sendConfirmationEmail = async (to, token, userName) => {
   const frontendUrl = process.env.FRONTEND_URL || 'https://acta-entrega.netlify.app';
   const confirmationUrl = `${frontendUrl}/verificar-email?token=${token}`;
@@ -55,7 +55,7 @@ const sendConfirmationEmail = async (to, token, userName) => {
   return sendEmail(to, 'Confirma tu correo electrónico en Universitas', htmlContent);
 };
 
-// 4. FUNCIÓN PARA EL CORREO DE RECUPERACIÓN DE CONTRASEÑA
+// 4. FUNCIÓN PARA EL CORREO DE RECUPERACIÓN DE CONTRASEÑA (SIN CAMBIOS)
 const sendPasswordResetEmail = async (to, otp, userName) => {
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
@@ -77,8 +77,7 @@ const sendPasswordResetEmail = async (to, otp, userName) => {
   return sendEmail(to, 'Tu código para restablecer la contraseña', htmlContent);
 };
 
-
-// 5. EXPORTACIÓN DE TODAS LAS FUNCIONES (AL FINAL DEL ARCHIVO)
+// 5. EXPORTACIÓN DE TODAS LAS FUNCIONES
 module.exports = {
   sendEmail,
   sendConfirmationEmail,
