@@ -15,7 +15,7 @@ const sendEmail = async (to, subject, html) => {
 
   try {
     await resend.emails.send({
-      from: fromEmail,
+      from: `Universitas <${fromEmail}>`,
       to,
       subject,
       html,
