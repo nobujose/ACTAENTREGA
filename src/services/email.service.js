@@ -6,8 +6,8 @@ const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
 const fromEmail = process.env.FROM_EMAIL; // ej: 'noreply@universitasdev.com'
 
-// 2. FUNCIÓN BASE PARA ENVIAR CORREOS CON RESEND
-const sendEmail = async (to, subject, html) => {
+// 2. FUNCIÓN BASE PARA ENVIAR CORREOS CON RESEND (CON SOPORTE PARA ADJUNTOS)
+const sendEmail = async (to, subject, html, attachments = []) => {
   if (!fromEmail) {
     console.error('Error: La variable de entorno FROM_EMAIL no está configurada.');
     return false;
@@ -19,8 +19,9 @@ const sendEmail = async (to, subject, html) => {
       to,
       subject,
       html,
+      attachments, // Se añade el array de adjuntos
     });
-    console.log(`Correo enviado a ${to} a través de Resend`);
+    console.log(`Correo con ${attachments.length} adjunto(s) enviado a ${to} a través de Resend`);
     return true;
   } catch (error) {
     console.error(`Error al enviar correo con Resend a ${to}:`, error);
