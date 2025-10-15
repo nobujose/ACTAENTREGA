@@ -1,40 +1,27 @@
-const { google } = require('googleapis');
+const { getGoogleClients } = require('./googleAuth.service');
 
 // --- Configuración ---
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
-const KEYFILEPATH = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 
-let sheets; // Variable para mantener el cliente autenticado
+let sheetsClient; // Variable para mantener el cliente de Sheets autenticado
 
 /**
- * Autentica con la API de Google Sheets.
- * Se llamará automáticamente antes de cualquier operación.
+ * Obtiene el cliente de Google Sheets autenticado.
+ * @returns {Promise<import('googleapis').sheets_v4.Sheets>} Cliente de Google Sheets.
  */
-async function authenticate() {
-  // Si ya estamos autenticados, no hacemos nada más.
-  if (sheets) {
-    return;
+async function getSheetsClient() {
+  if (!sheetsClient) {
+    const clients = await getGoogleClients();
+    sheetsClient = clients.sheets;
   }
-  try {
-    const auth = new google.auth.GoogleAuth({
-      keyFile: KEYFILEPATH,
-      scopes: SCOPES,
-    });
-    const authClient = await auth.getClient();
-    sheets = google.sheets({ version: 'v4', auth: authClient });
-    console.log('Autenticación con Google Sheets exitosa.');
-  } catch (error) {
-    console.error('Error al autenticar con Google Sheets:', error);
-    throw new Error('No se pudo conectar con Google Sheets.');
-  }
+  return sheetsClient;
 }
 
 /**
  * Obtiene datos de un rango específico de una hoja.
  */
 const getSheetData = async (range) => {
-  await authenticate();
+  const sheets = await getSheetsClient();
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
@@ -48,17 +35,16 @@ const getSheetData = async (range) => {
 };
 
 /**
- * Añade una nueva fila de datos al final de una hoja. (VERSIÓN CORREGIDA)
+ * Añade una nueva fila de datos al final de una hoja.
  */
 const appendSheetData = async (sheetName, rowData) => {
-  await authenticate();
+  const sheets = await getSheetsClient();
   try {
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
       range: `${sheetName}!A1`,
       valueInputOption: 'USER_ENTERED',
       insertDataOption: 'INSERT_ROWS',
-      // ¡CORRECCIÓN CLAVE! Se usa 'resource' en lugar de 'requestBody'
       resource: {
         values: [rowData],
       },
@@ -72,10 +58,10 @@ const appendSheetData = async (sheetName, rowData) => {
 };
 
 /**
- * Busca una fila basándose en el valor de una columna. (CONSERVADA)
+ * Busca una fila basándose en el valor de una columna.
  */
 const findRowByValueInColumn = async (sheetName, columnName, valueToFind) => {
-    await authenticate();
+    const sheets = await getSheetsClient();
     try {
         const allData = await getSheetData(`${sheetName}!A:Z`);
         if (!allData || allData.length < 1) return null;
@@ -101,10 +87,10 @@ const findRowByValueInColumn = async (sheetName, columnName, valueToFind) => {
 };
 
 /**
- * Actualiza una celda específica. (CONSERVADA Y CORREGIDA)
+ * Actualiza una celda específica.
  */
 const updateCell = async (sheetName, rowIndex, columnName, value) => {
-    await authenticate();
+    const sheets = await getSheetsClient();
     try {
         const headers = (await getSheetData(`${sheetName}!1:1`))[0];
         if (!headers) throw new Error("No se pudieron obtener los encabezados.");
@@ -128,7 +114,6 @@ const updateCell = async (sheetName, rowIndex, columnName, value) => {
             spreadsheetId: SPREADSHEET_ID,
             range: range,
             valueInputOption: 'USER_ENTERED',
-            // ¡CORRECCIÓN CLAVE!
             resource: {
                 values: [[value]],
             },
@@ -141,10 +126,10 @@ const updateCell = async (sheetName, rowIndex, columnName, value) => {
 };
 
 /**
- * Elimina una fila específica. (CONSERVADA Y CORREGIDA)
+ * Elimina una fila específica.
  */
 const deleteRow = async (sheetName, rowIndex) => {
-    await authenticate();
+    const sheets = await getSheetsClient();
     try {
         const { data } = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
         const sheet = data.sheets.find(s => s.properties.title === sheetName);
@@ -152,7 +137,6 @@ const deleteRow = async (sheetName, rowIndex) => {
         
         await sheets.spreadsheets.batchUpdate({
             spreadsheetId: SPREADSHEET_ID,
-            // ¡CORRECCIÓN CLAVE!
             resource: {
                 requests: [{
                     deleteDimension: {
@@ -179,7 +163,7 @@ const deleteRow = async (sheetName, rowIndex) => {
  * @param {Array<any>} eventData - Un array con los datos del evento.
  */
 const logEvent = async (sheetName, eventData) => {
-  await authenticate();
+  const sheets = await getSheetsClient();
   try {
     await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
@@ -199,12 +183,12 @@ const logEvent = async (sheetName, eventData) => {
 };
 
 
-// Exportamos las funciones. Ya no se necesita 'init'.
+// Exportamos las funciones.
 module.exports = {
     getSheetData,
     appendSheetData,
     findRowByValueInColumn,
     updateCell,
     deleteRow,
-    logEvent, // <-- Añade la nueva función
+    logEvent,
 };
