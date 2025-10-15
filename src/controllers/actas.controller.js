@@ -354,58 +354,59 @@ const createActaEntrantePaga = async (req, res) => {
         const formattedNumber = String(nextNumber).padStart(3, '0');
         const numeroActa = `A.E.P.-${formattedNumber}`;
 
-        const headers = [
-            "numeroActa", "id", "email", "rifOrgano", "denominacionCargo", "nombreOrgano", "ciudadSuscripcion",
-            "estadoSuscripcion", "horaSuscripcion", "fechaSuscripcion", "direccionOrgano", "nombreServidorEntrante",
-            "cedulaServidorEntrante", "profesionServidorEntrante", "designacionServidorEntrante", "nombreAuditor",
-            "cedulaAuditor", "profesionAuditor", "nombreTestigo1", "cedulaTestigo1", "profesionTestigo1",
-            "nombreTestigo2", "cedulaTestigo2", "profesionTestigo2", "motivoEntrega", "nombreServidorSaliente",
-            "cedulaServidorSaliente", "designacionServidorSaliente", "estadoSituacionPresupuestaria", "Anexo_1",
-            "relacionGastosComprometidosNoCausados", "Anexo_2", "relacionGastosCausadosNoPagados", "Anexo_3",
-            "estadoPresupuestarioPorPartidas", "Anexo_4", "estadoPresupuestarioDetalleCuentas", "Anexo_5",
-            "estadosFinancieros", "Anexo_6", "balanceComprobacion", "Anexo_7", "estadoSituacionFinanciera", "Anexo_8",
-            "estadoRendimientoFinanciero", "Anexo_9", "estadoMovimientosPatrimonio", "Anexo_10", "relacionCuentasPorCobrar", "Anexo_11",
-            "relacionCuentasPorPagar", "Anexo_12", "relacionCuentasFondosTerceros", "Anexo_13", "situacionFondosAnticipo", "Anexo_14",
-            "situacionCajaChica", "Anexo_15", "actaArqueoCajasChicas", "Anexo_16", "listadoRegistroAuxiliarProveedores", "Anexo_17",
-            "reportesLibrosContables", "Anexo_18", "reportesCuentasBancarias", "Anexo_19", "reportesConciliacionesBancarias", "Anexo_20",
-            "reportesRetenciones", "Anexo_21", "reporteProcesosContrataciones", "Anexo_22", "reporteFideicomisoPrestaciones", "Anexo_23",
-            "reporteBonosVacacionales", "Anexo_24", "cuadroResumenCargos", "Anexo_25", "cuadroResumenValidadoRRHH", "Anexo_26",
-            "reporteNominas", "Anexo_27", "inventarioBienes", "Anexo_28", "ejecucionPlanOperativo", "Anexo_29",
-            "causasIncumplimientoMetas", "Anexo_30", "planOperativoAnual", "Anexo_31", "clasificacionArchivo", "Anexo_32",
-            "ubicacionFisicaArchivo", "Anexo_33", "Anexo_VI", "Anexos_VII", "relacionMontosFondosAsignados", "Anexo_34",
-            "saldoEfectivoFondos", "Anexo_35", "relacionBienesAsignados", "Anexo_36", "relacionBienesAsignadosUnidadBienes", "Anexo_37",
-            "estadosBancariosConciliados", "Anexo_38", "listaComprobantesGastos", "Anexo_39", "chequesEmitidosPendientesCobro", "Anexo_40",
-            "listadoTransferenciaBancaria", "Anexo_41", "caucionFuncionario", "Anexo_42", "cuadroDemostrativoRecaudado", "Anexo_43",
-            "relacionExpedientesAbiertos", "Anexo_44", "situacionTesoroNacional", "Anexo_45", "infoEjecucionPresupuestoNacional", "Anexo_46",
-            "montoDeudaPublicaNacional", "Anexo_47", "situacionCuentasNacion", "Anexo_48", "situacionTesoroEstadal", "Anexo_49",
-            "infoEjecucionPresupuestoEstadal", "Anexo_50", "situacionCuentasEstado", "Anexo_51", "situacionTesoroDistritalMunicipal", "Anexo_52",
-            "infoEjecucionPresupuestoDistritalMunicipal", "Anexo_53", "situacionCuentasDistritalesMunicipales", "Anexo_54",
-            "inventarioTerrenosEjidos", "Anexo_55", "relacionIngresosVentaTerrenos", "Anexo_56", "observacionesAdicionales",
-            "FirmaAuditoría", "interesProducto"
-        ];
-        
+        // --- INICIO DE LA LÓGICA CORRECTA (IGUAL A MÁXIMA AUTORIDAD) ---
+
+        // 1. Objeto para manejar todos los datos de forma flexible.
         const newRowData = {};
-        headers.forEach(header => {
-            newRowData[header] = req.body[header] || '';
+        Object.keys(req.body).forEach(key => {
+            newRowData[key] = req.body[key] || '';
         });
+
+        // 2. Lógica CLAVE para poblar los anexos dinámicamente.
+        for (const pregunta in anexosMap) {
+            const anexoInfo = anexosMap[pregunta];
+            if (req.body[pregunta] === 'SI') {
+                newRowData[anexoInfo.key] = anexoInfo.text; // Añade el texto del anexo
+            } else {
+                // Deja el valor vacío para que el generador de documentos elimine la línea
+                newRowData[anexoInfo.key] = '';
+            }
+        }
+        
+        // 3. Asignar valores generados y procesar anexos especiales VI y VII.
         newRowData['numeroActa'] = numeroActa;
         newRowData['id'] = id;
 
-        // Lógica para Anexo VI y VII
         if (newRowData['Anexo_VI'] && newRowData['Anexo_VI'].trim()) {
             newRowData['Anexo_VI'] = `${newRowData['Anexo_VI']}\nVER ANEXO 6`;
-        } else {
-            newRowData['Anexo_VI'] = '';
         }
-
+        
         if (newRowData['Anexos_VII'] && newRowData['Anexos_VII'].trim().toLowerCase() !== 'no aplica' && newRowData['Anexos_VII'].trim()) {
             newRowData['Anexo_VII'] = `Anexo Séptimo: Otros anexos del acta: ${newRowData['Anexos_VII']}`;
         } else {
             newRowData['Anexo_VII'] = '';
         }
         
-        const newRowArray = headers.map(header => newRowData[header]);
+        // 4. Preparar la fila para Google Sheets.
+        // Se crea un array ordenado a partir de un objeto, lo que es más propenso a errores.
+        // Es mejor definir los 'headers' explícitamente para asegurar el orden correcto.
+        const headers = Object.keys(anexosMap).concat(Object.values(anexosMap).map(a => a.key)); // y otros campos...
+        // Para simplificar y asegurar, vamos a construir el array en el orden que ya definiste.
+        const allHeadersForSheet = [
+             "numeroActa", "id", "email", "rifOrgano", "denominacionCargo", "nombreOrgano", "ciudadSuscripcion",
+            "estadoSuscripcion", "horaSuscripcion", "fechaSuscripcion", "direccionOrgano", "nombreServidorEntrante",
+            "cedulaServidorEntrante", "profesionServidorEntrante", "designacionServidorEntrante", "nombreAuditor",
+            "cedulaAuditor", "profesionAuditor", "nombreTestigo1", "cedulaTestigo1", "profesionTestigo1",
+            "nombreTestigo2", "cedulaTestigo2", "profesionTestigo2", "motivoEntrega", "nombreServidorSaliente",
+            "cedulaServidorSaliente", "designacionServidorSaliente",
+            ...Object.keys(anexosMap), ...Object.values(anexosMap).map(a => a.key),
+            "Anexo_VI", "Anexos_VII", "observacionesAdicionales", "interesProducto", "omision"
+        ].filter((v, i, a) => a.indexOf(v) === i);
+
+        const newRowArray = allHeadersForSheet.map(header => newRowData[header] || '');
         const success = await sheets.appendSheetData(ACTA_ENTRANTE_PAGA_SHEET, newRowArray);
+
+        // --- FIN DE LA LÓGICA CORRECTA ---
 
         if (!success) {
             return res.status(500).json({ message: 'Error al guardar el acta en la hoja de cálculo.' });
@@ -417,11 +418,11 @@ const createActaEntrantePaga = async (req, res) => {
             id: id
         });
 
-        // --- PROCESO EN SEGUNDO PLANO ---
+        // El proceso en segundo plano no necesita cambios.
         (async () => {
             try {
-                // Determina qué plantilla usar basado en el campo 'omision'
-                const templateName = req.body.omision ? 'omisionActa.html' : 'actaEntregaPaga.html';
+                
+                const templateName = 'actaEntregaPaga.html';
                 const docBuffer = await documentService.generateDocFromTemplate(templateName, newRowData);
                 const docFileName = `Acta_Entrante_${numeroActa}.docx`;
 
@@ -461,31 +462,77 @@ const createActaSalientePaga = async (req, res) => {
       }
     }
     const formattedNumber = String(nextNumber).padStart(3, '0');
-    const numeroActa = `A.S.P.-${formattedNumber}`; // Corregido para Saliente
+    // Corregido el prefijo para "Acta Saliente Paga"
+    const numeroActa = `A.S.P.-${formattedNumber}`;
 
-    const headers = [ /* ... define los headers para el acta saliente ... */ ];
-    
+    // 1. Objeto para manejar los datos
     const newRowData = {};
-     headers.forEach(header => {
-        newRowData[header] = req.body[header] || '';
+    Object.keys(req.body).forEach(key => {
+        newRowData[key] = req.body[key] || '';
     });
+
+    // 2. Lógica para poblar anexos dinámicamente
+    for (const pregunta in anexosMap) {
+        const anexoInfo = anexosMap[pregunta];
+        if (req.body[pregunta] === 'SI') {
+            newRowData[anexoInfo.key] = anexoInfo.text;
+        } else {
+            newRowData[anexoInfo.key] = '';
+        }
+    }
+    
+    // 3. Asignar valores generados
     newRowData['numeroActa'] = numeroActa;
     newRowData['id'] = id;
-    
-    const newRowArray = headers.map(header => newRowData[header]);
+
+    // 4. Definir los encabezados en el orden correcto para la hoja de cálculo
+    //    Asegúrate de que estos coincidan con los campos de tu formulario y la hoja de Google
+    const headers = [
+      "numeroActa", "id", "email", "rifOrgano", "denominacionCargo", "nombreOrgano",
+      "ciudadSuscripcion", "estadoSuscripcion", "horaSuscripcion", "fechaSuscripcion", "direccionOrgano",
+      "nombreServidorEntregador", "cedulaServidorEntregador", "designacionServidorEntregador", "motivoEntrega",
+      "nombreServidorRecibe", "cedulaServidorRecibe", "designacionServidorRecibe",
+      ...Object.keys(anexosMap), ...Object.values(anexosMap).map(a => a.key),
+      "Anexo_VI", "Anexos_VII", "observacionesAdicionales", "interesProducto"
+    ].filter((v, i, a) => a.indexOf(v) === i); // Evita duplicados
+
+    // 5. Crear el array para Google Sheets y guardar
+    const newRowArray = headers.map(header => newRowData[header] || '');
     const success = await sheets.appendSheetData(ACTA_SALIENTE_PAGA_SHEET, newRowArray);
 
     if (!success) {
-      return res.status(500).json({ message: 'Error al guardar el acta.' });
+      return res.status(500).json({ message: 'Error al guardar el acta en la hoja de cálculo.' });
     }
     
+    // 6. Responder al usuario
     res.status(201).json({ 
-        message: 'Acta Saliente (Paga) creada exitosamente.',
+        message: 'Acta Saliente (Paga) creada. El documento se está generando y se enviará por correo.',
         numeroActa: numeroActa,
         id: id
     });
     
-    // Aquí podrías añadir la lógica para generar y enviar el documento si es necesario
+    // 7. Proceso en segundo plano para generar y enviar el documento
+    (async () => {
+        try {
+            // Usamos la nueva plantilla que creamos en el Paso 1
+            const templateName = 'actaSalientePaga.html';
+            
+            const docBuffer = await documentService.generateDocFromTemplate(templateName, newRowData);
+            const docFileName = `Acta_Saliente_${numeroActa}.docx`;
+
+            if (!docBuffer || docBuffer.length === 0) {
+                throw new Error('El buffer del documento está vacío.');
+            }
+
+            const attachments = [{ filename: docFileName, content: docBuffer.toString('base64') }];
+            const emailHtml = `<h1>Felicidades</h1><p>Tu Acta de Entrega Saliente ha sido generada. La encontrarás adjunta.</p>`;
+            await emailService.sendEmail(req.body.email, 'Tu Acta de Entrega Saliente ha sido Generada', emailHtml, attachments);
+            
+            console.log(`Proceso de documento y correo para ${numeroActa} completado.`);
+        } catch (backgroundError) {
+            console.error(`Error en el proceso de fondo para el acta ${numeroActa}:`, backgroundError);
+        }
+    })();
     
   } catch (error) {
     console.error('Error en createActaSalientePaga:', error);
