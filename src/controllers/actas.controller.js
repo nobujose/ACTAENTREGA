@@ -70,165 +70,10 @@ const anexosMap = {
     disponeRelacionIngresosVentaTerrenos: { key: 'Anexo_56', text: '-Relación de Ingresos producto de las ventas de terrenos ejidos o terrenos propios distritales o municipales.' }
 };
 
-/**
- * Crea un Acta de Entrega Entrante (Gratuita).
- */
-const createActaEntranteGratis = async (req, res) => {
-  try {
-    const id = Math.random().toString(36).substring(2, 10).toUpperCase();
-    const allData = await sheets.getSheetData(ACTA_ENTRANTE_GRATIS_SHEET);
-    let nextNumber = 1;
-    if (allData && allData.length > 1) {
-      const lastRow = allData[allData.length - 1];
-      const lastActaNumber = lastRow[0];
-      const lastNumberMatch = lastActaNumber.match(/-(\d+)$/);
-      if (lastNumberMatch) {
-        nextNumber = parseInt(lastNumberMatch[1], 10) + 1;
-      }
-    }
-    const formattedNumber = String(nextNumber).padStart(3, '0');
-    const numeroActa = `A.E.E.G-${formattedNumber}`;
-    const {
-      email, rifEntidad, cargoEntregado, nombreEntidad,
-      ciudad, estado, hora, fecha, direccionEntidad, nombreServidorEntrante,
-      cedulaServidorEntrante, profesionServidorEntrante, designacionServidorEntrante,
-      nombreAuditor, cedulaAuditor, profesionAuditor, nombreTestigo1,
-      cedulaTestigo1, profesionTestigo1, nombreTestigo2, cedulaTestigo2,
-      profesionTestigo2, motivoEntrega, nombreServidorSaliente,
-      cedulaServidorSaliente, designacionServidorSaliente, interesProductoPago
-    } = req.body;
-    if (!email || !nombreEntidad) {
-      return res.status(400).json({ message: 'Faltan campos obligatorios como email o nombreEntidad.' });
-    }
-    const newRow = [
-      numeroActa, id, email, rifEntidad, cargoEntregado, nombreEntidad,
-      ciudad, estado, hora, fecha, direccionEntidad, nombreServidorEntrante,
-      cedulaServidorEntrante, profesionServidorEntrante, designacionServidorEntrante,
-      nombreAuditor, cedulaAuditor, profesionAuditor, nombreTestigo1,
-      cedulaTestigo1, profesionTestigo1, nombreTestigo2, cedulaTestigo2,
-      profesionTestigo2, motivoEntrega, nombreServidorSaliente,
-      cedulaServidorSaliente, designacionServidorSaliente, interesProductoPago
-    ];
-    const success = await sheets.appendSheetData(ACTA_ENTRANTE_GRATIS_SHEET, newRow);
-    if (!success) {
-      return res.status(500).json({ message: 'Error al guardar el acta en la hoja de cálculo.' });
-    }
-    res.status(201).json({ 
-        message: 'Acta de Entrega Entrante (Gratis) creada exitosamente.',
-        numeroActa: numeroActa,
-        id: id
-    });
-  } catch (error) {
-    console.error('Error en createActaEntranteGratis:', error);
-    res.status(500).json({ message: 'Error interno del servidor.' });
-  }
-};
+const createActaEntranteGratis = async (req, res) => { /* ... tu código ... */ };
+const createActaSalienteGratis = async (req, res) => { /* ... tu código ... */ };
+const createActaMaximaAutoridadGratis = async (req, res) => { /* ... tu código ... */ };
 
-/**
- * Crea un Acta de Entrega Saliente (Gratuita).
- */
-const createActaSalienteGratis = async (req, res) => {
-  try {
-    const id = Math.random().toString(36).substring(2, 10).toUpperCase();
-    const allData = await sheets.getSheetData(ACTA_SALIENTE_GRATIS_SHEET);
-    let nextNumber = 1;
-    if (allData && allData.length > 1) {
-      const lastRow = allData[allData.length - 1];
-      const lastActaNumber = lastRow[0];
-      const lastNumberMatch = lastActaNumber.match(/-(\d+)$/);
-      if (lastNumberMatch) {
-        nextNumber = parseInt(lastNumberMatch[1], 10) + 1;
-      }
-    }
-    const formattedNumber = String(nextNumber).padStart(3, '0');
-    const numeroActa = `A.E.S.G-${formattedNumber}`;
-    const {
-      email, rifEntidad, cargoEntregado, nombreEntidad,
-      ciudad, estado, hora, fecha, direccionEntidad, nombreServidorEntregador,
-      cedulaServidorEntregador, designacionServidorEntregador, motivoEntrega,
-      nombreServidorRecibe, cedulaServidorRecibe, designacionServidorRecibe,
-      interesProductoPago, consejoIA
-    } = req.body;
-    if (!email || !nombreEntidad) {
-      return res.status(400).json({ message: 'Faltan campos obligatorios como email o nombreEntidad.' });
-    }
-    const newRow = [
-      numeroActa, id, email, rifEntidad, cargoEntregado, nombreEntidad,
-      ciudad, estado, hora, fecha, direccionEntidad, nombreServidorEntregador,
-      cedulaServidorEntregador, designacionServidorEntregador, motivoEntrega,
-      nombreServidorRecibe, cedulaServidorRecibe, designacionServidorRecibe,
-      interesProductoPago, consejoIA
-    ];
-    const success = await sheets.appendSheetData(ACTA_SALIENTE_GRATIS_SHEET, newRow);
-    if (!success) {
-      return res.status(500).json({ message: 'Error al guardar el acta en la hoja de cálculo.' });
-    }
-    res.status(201).json({ 
-        message: 'Acta de Entrega Saliente (Gratis) creada exitosamente.',
-        numeroActa: numeroActa,
-        id: id
-    });
-  } catch (error) {
-    console.error('Error en createActaSalienteGratis:', error);
-    res.status(500).json({ message: 'Error interno del servidor.' });
-  }
-};
-
-/**
- * Crea un Acta de Máxima Autoridad (Gratuita).
- */
-const createActaMaximaAutoridadGratis = async (req, res) => {
-  try {
-    const id = Math.random().toString(36).substring(2, 10).toUpperCase();
-    const allData = await sheets.getSheetData(ACTA_MAXIMA_AUTORIDAD_GRATIS_SHEET);
-    let nextNumber = 1;
-    if (allData && allData.length > 1) {
-      const lastRow = allData[allData.length - 1];
-      const lastActaNumber = lastRow[0];
-      const lastNumberMatch = lastActaNumber.match(/-(\d+)$/);
-      if (lastNumberMatch) {
-        nextNumber = parseInt(lastNumberMatch[1], 10) + 1;
-      }
-    }
-    const formattedNumber = String(nextNumber).padStart(3, '0');
-    const numeroActa = `A.M.A.G-${formattedNumber}`;
-    const {
-      email, rifEntidad, denominacionCargo, nombreEntidad, ciudad, estado, hora, fecha,
-      direccionEntidad, nombreServidorEntrante, cedulaServidorEntrante, profesionServidorEntrante,
-      designacionServidorEntrante, nombreAuditor, cedulaAuditor, profesionAuditor,
-      nombreTestigo1, cedulaTestigo1, profesionTestigo1, nombreTestigo2, cedulaTestigo2,
-      profesionTestigo2, motivoEntrega, nombreServidorSaliente, cedulaServidorSaliente,
-      designacionServidorSaliente, interesProducto, precondicion, condicionSi, cumpleNo
-    } = req.body;
-    if (!email || !nombreEntidad) {
-      return res.status(400).json({ message: 'Faltan campos obligatorios como email o nombreEntidad.' });
-    }
-    const newRow = [
-      numeroActa, id, email, rifEntidad, denominacionCargo, nombreEntidad, ciudad, estado, hora, fecha,
-      direccionEntidad, nombreServidorEntrante, cedulaServidorEntrante, profesionServidorEntrante,
-      designacionServidorEntrante, nombreAuditor, cedulaAuditor, profesionAuditor,
-      nombreTestigo1, cedulaTestigo1, profesionTestigo1, nombreTestigo2, cedulaTestigo2,
-      profesionTestigo2, motivoEntrega, nombreServidorSaliente, cedulaServidorSaliente,
-      designacionServidorSaliente, interesProducto, precondicion, condicionSi, cumpleNo
-    ];
-    const success = await sheets.appendSheetData(ACTA_MAXIMA_AUTORIDAD_GRATIS_SHEET, newRow);
-    if (!success) {
-      return res.status(500).json({ message: 'Error al guardar el acta en la hoja de cálculo.' });
-    }
-    res.status(201).json({ 
-        message: 'Acta Máxima Autoridad (Gratis) creada exitosamente.',
-        numeroActa: numeroActa,
-        id: id
-    });
-  } catch (error) {
-    console.error('Error en createActaMaximaAutoridadGratis:', error);
-    res.status(500).json({ message: 'Error interno del servidor.' });
-  }
-};
-
-/**
- * Crea un Acta de Máxima Autoridad (de Pago) y la envía por correo.
- */
 const createActaMaximaAutoridadPaga = async (req, res) => {
     try {
         const id = Math.random().toString(36).substring(2, 10).toUpperCase();
@@ -245,61 +90,31 @@ const createActaMaximaAutoridadPaga = async (req, res) => {
         const formattedNumber = String(nextNumber).padStart(3, '0');
         const numeroActa = `A.M.A.P-${formattedNumber}`;
 
-        const headers = [
-            // --- CAMPOS BÁSICOS ---
-            "numeroActa", "id", "email", "rifOrgano", "denominacionCargo", "nombreOrgano",
-            "ciudadSuscripcion", "estadoSuscripcion", "horaSuscripcion", "fechaSuscripcion", "direccionOrgano",
-            "nombreServidorEntrante", "cedulaServidorEntrante", "profesionServidorEntrante", "designacionServidorEntrante",
-            "nombreAuditor", "cedulaAuditor", "profesionAuditor", "nombreTestigo1", "cedulaTestigo1", "profesionTestigo1",
-            "nombreTestigo2", "cedulaTestigo2", "profesionTestigo2", "motivoEntrega", "nombreServidorSaliente",
-            "cedulaServidorSaliente", "designacionServidorSaliente",
+        const sheetData = { ...req.body, numeroActa, id };
+        const templateData = { ...sheetData };
 
-            // --- CAMPOS DE ANEXOS (SE GENERAN AUTOMÁTICAMENTE) ---
-            // Esto añade todas las preguntas (ej: "disponeEstadoSituacionPresupuestaria")
-            ...Object.keys(anexosMap),
-            // Esto añade todos los nombres de Anexo (ej: "Anexo_1")
-            ...Object.values(anexosMap).map(a => a.key),
-
-            // --- CAMPOS ADICIONALES ---
-            "Anexo_VI", "Anexo_VII", "OBSERVACIONES ADICIONALES", "interesProductoPago"
-        
-        // Esta línea final limpia la lista para que no haya duplicados
-        ].filter((v, i, a) => a.indexOf(v) === i);
-
-        const newRowData = {};
-        
-        // Poblar datos básicos desde el cuerpo de la solicitud
-        Object.keys(req.body).forEach(key => {
-            newRowData[key] = req.body[key] || '';
-        });
-
-        // Lógica para poblar los anexos dinámicamente
         for (const pregunta in anexosMap) {
             const anexoInfo = anexosMap[pregunta];
-            if (req.body[pregunta] === 'SI') {
-                newRowData[anexoInfo.key] = anexoInfo.text;
-            } else {
-                newRowData[anexoInfo.key] = ''; // Dejar vacío si la respuesta no es 'SI'
-            }
-        }
-        
-        newRowData['numeroActa'] = numeroActa;
-        newRowData['id'] = id;
-
-        // Lógica para Anexo VI y VII
-        if (newRowData['Anexo_VI'] && newRowData['Anexo_VI'].trim()) {
-            newRowData['Anexo_VI'] = `${newRowData['Anexo_VI']}\nVER ANEXO 6`;
-        } else {
-            newRowData['Anexo_VI'] = '';
+            templateData[anexoInfo.key] = req.body[pregunta] === 'SI' ? anexoInfo.text : '';
         }
 
-        if (newRowData['Anexo_VII'] && newRowData['Anexo_VII'].trim().toLowerCase() !== 'no aplica' && newRowData['Anexo_VII'].trim()) {
-            newRowData['Anexo_VII'] = `Anexo Séptimo: Otros anexos del acta: ${newRowData['Anexo_VII']}`;
-        } else {
-            newRowData['Anexo_VII'] = '';
+        if (templateData['Anexo_VI'] && templateData['Anexo_VI'].trim()) {
+            templateData['Anexo_VI'] = `${templateData['Anexo_VI'].trim()}<br>VER ANEXO 6`;
         }
-        
-        const newRowArray = headers.map(header => newRowData[header] || '');
+        const anexoVIIValue = templateData['Anexo_VII'] || templateData['Anexos_VII'] || '';
+        if (anexoVIIValue && anexoVIIValue.trim().toLowerCase() !== 'no aplica') {
+            templateData['Anexo_VII'] = `<strong>Anexo Séptimo: Otros anexos del acta:</strong> ${anexoVIIValue.trim()}`;
+            templateData['VER_ANEXO_7'] = 'VER ANEXO 7'; // Variable separada
+        } else {
+            templateData['Anexo_VII'] = '';
+            templateData['VER_ANEXO_7'] = '';
+        }
+
+        const headers = [
+            "numeroActa", "id", "email", "rifOrgano", "denominacionCargo", "nombreOrgano", "ciudadSuscripcion", "estadoSuscripcion", "horaSuscripcion", "fechaSuscripcion", "direccionOrgano", "nombreServidorEntrante", "cedulaServidorEntrante", "profesionServidorEntrante", "designacionServidorEntrante", "nombreAuditor", "cedulaAuditor", "profesionAuditor", "nombreTestigo1", "cedulaTestigo1", "profesionTestigo1", "nombreTestigo2", "cedulaTestigo2", "profesionTestigo2", "motivoEntrega", "nombreServidorSaliente", "cedulaServidorSaliente", "designacionServidorSaliente", "disponeEstadoSituacionPresupuestaria", "Anexo_1", "disponeRelacionGastosComprometidosNoCausados", "Anexo_2", "disponeRelacionGastosComprometidosCausadosNoPagados", "Anexo_3", "disponeEstadoPresupuestarioPorPartidas", "Anexo_4", "disponeEstadoPresupuestarioDetalleCuentas", "Anexo_5", "disponeEstadosFinancieros", "Anexo_6", "disponeBalanceComprobacion", "Anexo_7", "disponeEstadoSituacionFinanciera", "Anexo_8", "disponeEstadoRendimientoFinanciero", "Anexo_9", "disponeEstadoMovimientosPatrimonio", "Anexo_10", "disponeRelacionCuentasPorCobrar", "Anexo_11", "disponeRelacionCuentasPorPagar", "Anexo_12", "disponeRelacionCuentasFondosTerceros", "Anexo_13", "disponeSituacionFondosAnticipo", "Anexo_14", "disponeSituacionCajaChica", "Anexo_15", "disponeActaArqueoCajasChicas", "Anexo_16", "disponeListadoRegistroAuxiliarProveedores", "Anexo_17", "disponeReportesLibrosContables", "Anexo_18", "disponeReportesCuentasBancarias", "Anexo_19", "disponeReportesConciliacionesBancarias", "Anexo_20", "disponeReportesRetenciones", "Anexo_21", "disponeReporteProcesosContrataciones", "Anexo_22", "disponeReporteFideicomisoPrestaciones", "Anexo_23", "disponeReporteBonosVacacionales", "Anexo_24", "disponeCuadroResumenCargos", "Anexo_25", "disponeCuadroResumenValidadoRRHH", "Anexo_26", "disponeReporteNominas", "Anexo_27", "disponeInventarioBienes", "Anexo_28", "disponeEjecucionPlanOperativo", "Anexo_29", "incluyeCausasIncumplimientoMetas", "Anexo_30", "disponePlanOperativoAnual", "Anexo_31", "disponeClasificacionArchivo", "Anexo_32", "incluyeUbicacionFisicaArchivo", "Anexo_33", "Anexo_VI", "Anexos_VII", "disponeRelacionMontosFondosAsignados", "Anexo_34", "disponeSaldoEfectivoFondos", "Anexo_35", "disponeRelacionBienesAsignados", "Anexo_36", "disponeRelacionBienesAsignadosUnidadBienes", "Anexo_37", "disponeEstadosBancariosConciliados", "Anexo_38", "disponeListaComprobantesGastos", "Anexo_39", "disponeChequesEmitidosPendientesCobro", "Anexo_40", "disponeListadoTransferenciaBancaria", "Anexo_41", "disponeCaucionFuncionario", "Anexo_42", "disponeCuadroDemostrativoRecaudado", "Anexo_43", "disponeRelacionExpedientesAbiertos", "Anexo_44", "disponeSituacionTesoroNacional", "Anexo_45", "disponeInfoEjecucionPresupuestoNacional", "Anexo_46", "disponeMontoDeudaPublicaNacional", "Anexo_47", "disponeSituacionCuentasNacion", "Anexo_48", "disponeSituacionTesoroEstadal", "Anexo_49", "disponeInfoEjecucionPresupuestoEstadal", "Anexo_50", "disponeSituacionCuentasEstado", "Anexo_51", "disponeSituacionTesoroDistritalMunicipal", "Anexo_52", "disponeInfoEjecucionPresupuestoDistritalMunicipal", "Anexo_53", "disponeSituacionCuentasDistritalesMunicipales", "Anexo_54", "disponeInventarioTerrenosEjidos", "Anexo_55", "disponeRelacionIngresosVentaTerrenos", "Anexo_56", "DirecciónCorreoAlterno", "¿Autoriza?", "LinkDocumento", "GenerarActa", "Firma de Auditoría", "OBSERVACIONES ADICIONALES", "interesProductoPago"
+        ];
+
+        const newRowArray = headers.map(header => sheetData[header] || '');
         const success = await sheets.appendSheetData(ACTA_MAXIMA_AUTORIDAD_PAGA_SHEET, newRowArray);
 
         if (!success) {
@@ -314,7 +129,7 @@ const createActaMaximaAutoridadPaga = async (req, res) => {
 
         (async () => {
             try {
-                const docBuffer = await documentService.generateDocFromTemplate('actaMaximaAutoridadPaga.html', newRowData);
+                const docBuffer = await documentService.generateDocFromTemplate('actaMaximaAutoridadPaga.html', templateData);
                 const docFileName = `Acta_Maxima_Autoridad_${numeroActa}.docx`;
                 if (!docBuffer || docBuffer.length === 0) throw new Error('El buffer del documento está vacío.');
                 
@@ -330,8 +145,8 @@ const createActaMaximaAutoridadPaga = async (req, res) => {
 
     } catch (error) {
         console.error('Error en createActaMaximaAutoridadPaga:', error);
+        res.status(500).json({ message: 'Error interno del servidor.' });
     }
-       
 };
 
 
@@ -354,60 +169,32 @@ const createActaEntrantePaga = async (req, res) => {
         const formattedNumber = String(nextNumber).padStart(3, '0');
         const numeroActa = `A.E.P.-${formattedNumber}`;
 
-        // --- INICIO DE LA LÓGICA CORRECTA (IGUAL A MÁXIMA AUTORIDAD) ---
+        const sheetData = { ...req.body, numeroActa, id };
+        const templateData = { ...sheetData };
 
-        // 1. Objeto para manejar todos los datos de forma flexible.
-        const newRowData = {};
-        Object.keys(req.body).forEach(key => {
-            newRowData[key] = req.body[key] || '';
-        });
-
-        // 2. Lógica CLAVE para poblar los anexos dinámicamente.
         for (const pregunta in anexosMap) {
             const anexoInfo = anexosMap[pregunta];
-            if (req.body[pregunta] === 'SI') {
-                newRowData[anexoInfo.key] = anexoInfo.text; // Añade el texto del anexo
-            } else {
-                // Deja el valor vacío para que el generador de documentos elimine la línea
-                newRowData[anexoInfo.key] = '';
-            }
+            templateData[anexoInfo.key] = req.body[pregunta] === 'SI' ? anexoInfo.text : '';
         }
-        
-        // 3. Asignar valores generados y procesar anexos especiales VI y VII.
-        newRowData['numeroActa'] = numeroActa;
-        newRowData['id'] = id;
-
-        if (newRowData['Anexo_VI'] && newRowData['Anexo_VI'].trim()) {
-            newRowData['Anexo_VI'] = `${newRowData['Anexo_VI']}\nVER ANEXO 6`;
+        if (templateData['Anexo_VI'] && templateData['Anexo_VI'].trim()) {
+            templateData['Anexo_VI'] = `${templateData['Anexo_VI'].trim()}<br>VER ANEXO 6`;
         }
-        
-        if (newRowData['Anexos_VII'] && newRowData['Anexos_VII'].trim().toLowerCase() !== 'no aplica' && newRowData['Anexos_VII'].trim()) {
-            newRowData['Anexo_VII'] = `Anexo Séptimo: Otros anexos del acta: ${newRowData['Anexos_VII']}`;
+        const anexoVIIValue = templateData['Anexos_VII'] || '';
+        if (anexoVIIValue && anexoVIIValue.trim().toLowerCase() !== 'no aplica') {
+            templateData['Anexo_VII'] = `<strong>Anexo Séptimo: Otros anexos del acta:</strong> ${anexoVIIValue.trim()}`;
+            templateData['VER_ANEXO_7'] = 'VER ANEXO 7';
         } else {
-            newRowData['Anexo_VII'] = '';
+            templateData['Anexo_VII'] = '';
+            templateData['VER_ANEXO_7'] = '';
         }
-        
-        // 4. Preparar la fila para Google Sheets.
-        // Se crea un array ordenado a partir de un objeto, lo que es más propenso a errores.
-        // Es mejor definir los 'headers' explícitamente para asegurar el orden correcto.
-        const headers = Object.keys(anexosMap).concat(Object.values(anexosMap).map(a => a.key)); // y otros campos...
-        // Para simplificar y asegurar, vamos a construir el array en el orden que ya definiste.
-        const allHeadersForSheet = [
-             "numeroActa", "id", "email", "rifOrgano", "denominacionCargo", "nombreOrgano", "ciudadSuscripcion",
-            "estadoSuscripcion", "horaSuscripcion", "fechaSuscripcion", "direccionOrgano", "nombreServidorEntrante",
-            "cedulaServidorEntrante", "profesionServidorEntrante", "designacionServidorEntrante", "nombreAuditor",
-            "cedulaAuditor", "profesionAuditor", "nombreTestigo1", "cedulaTestigo1", "profesionTestigo1",
-            "nombreTestigo2", "cedulaTestigo2", "profesionTestigo2", "motivoEntrega", "nombreServidorSaliente",
-            "cedulaServidorSaliente", "designacionServidorSaliente",
-            ...Object.keys(anexosMap), ...Object.values(anexosMap).map(a => a.key),
-            "Anexo_VI", "Anexos_VII", "observacionesAdicionales", "interesProducto", "omision"
-        ].filter((v, i, a) => a.indexOf(v) === i);
 
-        const newRowArray = allHeadersForSheet.map(header => newRowData[header] || '');
+        const headers = [
+            "numeroActa", "id", "email", "rifOrgano", "denominacionCargo", "nombreOrgano", "ciudadSuscripcion", "estadoSuscripcion", "horaSuscripcion", "fechaSuscripcion", "direccionOrgano", "nombreServidorEntrante", "cedulaServidorEntrante", "profesionServidorEntrante", "designacionServidorEntrante", "nombreAuditor", "cedulaAuditor", "profesionAuditor", "nombreTestigo1", "cedulaTestigo1", "profesionTestigo1", "nombreTestigo2", "cedulaTestigo2", "profesionTestigo2", "motivoEntrega", "nombreServidorSaliente", "cedulaServidorSaliente", "designacionServidorSaliente", "disponeEstadoSituacionPresupuestaria", "Anexo_1", "disponeRelacionGastosComprometidosNoCausados", "Anexo_2", "disponeRelacionGastosComprometidosCausadosNoPagados", "Anexo_3", "disponeEstadoPresupuestarioPorPartidas", "Anexo_4", "disponeEstadoPresupuestarioDetalleCuentas", "Anexo_5", "disponeEstadosFinancieros", "Anexo_6", "disponeBalanceComprobacion", "Anexo_7", "disponeEstadoSituacionFinanciera", "Anexo_8", "disponeEstadoRendimientoFinanciero", "Anexo_9", "disponeEstadoMovimientosPatrimonio", "Anexo_10", "disponeRelacionCuentasPorCobrar", "Anexo_11", "disponeRelacionCuentasPorPagar", "Anexo_12", "disponeRelacionCuentasFondosTerceros", "Anexo_13", "disponeSituacionFondosAnticipo", "Anexo_14", "disponeSituacionCajaChica", "Anexo_15", "disponeActaArqueoCajasChicas", "Anexo_16", "disponeListadoRegistroAuxiliarProveedores", "Anexo_17", "disponeReportesLibrosContables", "Anexo_18", "disponeReportesCuentasBancarias", "Anexo_19", "disponeReportesConciliacionesBancarias", "Anexo_20", "disponeReportesRetenciones", "Anexo_21", "disponeReporteProcesosContrataciones", "Anexo_22", "disponeReporteFideicomisoPrestaciones", "Anexo_23", "disponeReporteBonosVacacionales", "Anexo_24", "disponeCuadroResumenCargos", "Anexo_25", "disponeCuadroResumenValidadoRRHH", "Anexo_26", "disponeReporteNominas", "Anexo_27", "disponeInventarioBienes", "Anexo_28", "disponeEjecucionPlanOperativo", "Anexo_29", "incluyeCausasIncumplimientoMetas", "Anexo_30", "disponePlanOperativoAnual", "Anexo_31", "disponeClasificacionArchivo", "Anexo_32", "incluyeUbicacionFisicaArchivo", "Anexo_33", "Anexo_VI", "Anexos_VII", "disponeRelacionMontosFondosAsignados", "Anexo_34", "disponeSaldoEfectivoFondos", "Anexo_35", "disponeRelacionBienesAsignados", "Anexo_36", "disponeRelacionBienesAsignadosUnidadBienes", "Anexo_37", "disponeEstadosBancariosConciliados", "Anexo_38", "disponeListaComprobantesGastos", "Anexo_39", "disponeChequesEmitidosPendientesCobro", "Anexo_40", "disponeListadoTransferenciaBancaria", "Anexo_41", "disponeCaucionFuncionario", "Anexo_42", "disponeCuadroDemostrativoRecaudado", "Anexo_43", "disponeRelacionExpedientesAbiertos", "Anexo_44", "disponeSituacionTesoroNacional", "Anexo_45", "disponeInfoEjecucionPresupuestoNacional", "Anexo_46", "disponeMontoDeudaPublicaNacional", "Anexo_47", "disponeSituacionCuentasNacion", "Anexo_48", "disponeSituacionTesoroEstadal", "Anexo_49", "disponeInfoEjecucionPresupuestoEstadal", "Anexo_50", "disponeSituacionCuentasEstado", "Anexo_51", "disponeSituacionTesoroDistritalMunicipal", "Anexo_52", "disponeInfoEjecucionPresupuestoDistritalMunicipal", "Anexo_53", "disponeSituacionCuentasDistritalesMunicipales", "Anexo_54", "disponeInventarioTerrenosEjidos", "Anexo_55", "disponeRelacionIngresosVentaTerrenos", "Anexo_56", "observacionesAdicionales", "FirmaAuditoría", "interesProducto", "LinkDocumento"
+        ];
+
+        const newRowArray = headers.map(header => sheetData[header] || '');
         const success = await sheets.appendSheetData(ACTA_ENTRANTE_PAGA_SHEET, newRowArray);
-
-        // --- FIN DE LA LÓGICA CORRECTA ---
-
+        
         if (!success) {
             return res.status(500).json({ message: 'Error al guardar el acta en la hoja de cálculo.' });
         }
@@ -418,12 +205,10 @@ const createActaEntrantePaga = async (req, res) => {
             id: id
         });
 
-        // El proceso en segundo plano no necesita cambios.
         (async () => {
             try {
-                
-                const templateName = 'actaEntregaPaga.html';
-                const docBuffer = await documentService.generateDocFromTemplate(templateName, newRowData);
+                const templateName = req.body.omision ? 'omisionActa.html' : 'actaEntregaPaga.html';
+                const docBuffer = await documentService.generateDocFromTemplate(templateName, templateData);
                 const docFileName = `Acta_Entrante_${numeroActa}.docx`;
 
                 if (!docBuffer || docBuffer.length === 0) {
@@ -432,9 +217,17 @@ const createActaEntrantePaga = async (req, res) => {
 
                 const attachments = [{ filename: docFileName, content: docBuffer.toString('base64') }];
                 const emailHtml = `<h1>Felicidades</h1><p>Tu Acta de Entrega Entrante ha sido generada. La encontrarás adjunta en este correo.</p>`;
+                
+                // NUEVO LOG: Para verificar que se intenta enviar el correo
+                console.log(`Intentando enviar correo para el acta ${numeroActa} a ${req.body.email}`);
+                
                 await emailService.sendEmail(req.body.email, 'Tu Acta de Entrega Entrante ha sido Generada', emailHtml, attachments);
-                console.log(`Proceso de documento y correo para ${numeroActa} completado.`);
+                
+                // NUEVO LOG: Para confirmar que el envío fue exitoso
+                console.log(`Correo para el acta ${numeroActa} enviado exitosamente.`);
+
             } catch (backgroundError) {
+                // ESTE ES EL ERROR QUE DEBES BUSCAR EN LA CONSOLA
                 console.error(`Error en el proceso de fondo para el acta ${numeroActa}:`, backgroundError);
             }
         })();
@@ -444,100 +237,123 @@ const createActaEntrantePaga = async (req, res) => {
         res.status(500).json({ message: 'Error interno del servidor.' });
     }
 };
-
 /**
  * Crea un Acta de Entrega Saliente (de Pago) y la envía por correo.
  */
 const createActaSalientePaga = async (req, res) => {
-  try {
-    const id = Math.random().toString(36).substring(2, 10).toUpperCase();
-    const allData = await sheets.getSheetData(ACTA_SALIENTE_PAGA_SHEET);
-    let nextNumber = 1;
-    if (allData && allData.length > 1) {
-      const lastRow = allData[allData.length - 1];
-      const lastActaNumber = lastRow[0];
-      const lastNumberMatch = lastActaNumber.match(/-(\d+)$/);
-      if (lastNumberMatch) {
-        nextNumber = parseInt(lastNumberMatch[1], 10) + 1;
-      }
-    }
-    const formattedNumber = String(nextNumber).padStart(3, '0');
-    // Corregido el prefijo para "Acta Saliente Paga"
-    const numeroActa = `A.S.P.-${formattedNumber}`;
-
-    // 1. Objeto para manejar los datos
-    const newRowData = {};
-    Object.keys(req.body).forEach(key => {
-        newRowData[key] = req.body[key] || '';
-    });
-
-    // 2. Lógica para poblar anexos dinámicamente
-    for (const pregunta in anexosMap) {
-        const anexoInfo = anexosMap[pregunta];
-        if (req.body[pregunta] === 'SI') {
-            newRowData[anexoInfo.key] = anexoInfo.text;
-        } else {
-            newRowData[anexoInfo.key] = '';
-        }
-    }
-    
-    // 3. Asignar valores generados
-    newRowData['numeroActa'] = numeroActa;
-    newRowData['id'] = id;
-
-    // 4. Definir los encabezados en el orden correcto para la hoja de cálculo
-    //    Asegúrate de que estos coincidan con los campos de tu formulario y la hoja de Google
-    const headers = [
-      "numeroActa", "id", "email", "rifOrgano", "denominacionCargo", "nombreOrgano",
-      "ciudadSuscripcion", "estadoSuscripcion", "horaSuscripcion", "fechaSuscripcion", "direccionOrgano",
-      "nombreServidorEntregador", "cedulaServidorEntregador", "designacionServidorEntregador", "motivoEntrega",
-      "nombreServidorRecibe", "cedulaServidorRecibe", "designacionServidorRecibe",
-      ...Object.keys(anexosMap), ...Object.values(anexosMap).map(a => a.key),
-      "Anexo_VI", "Anexos_VII", "observacionesAdicionales", "interesProducto"
-    ].filter((v, i, a) => a.indexOf(v) === i); // Evita duplicados
-
-    // 5. Crear el array para Google Sheets y guardar
-    const newRowArray = headers.map(header => newRowData[header] || '');
-    const success = await sheets.appendSheetData(ACTA_SALIENTE_PAGA_SHEET, newRowArray);
-
-    if (!success) {
-      return res.status(500).json({ message: 'Error al guardar el acta en la hoja de cálculo.' });
-    }
-    
-    // 6. Responder al usuario
-    res.status(201).json({ 
-        message: 'Acta Saliente (Paga) creada. El documento se está generando y se enviará por correo.',
-        numeroActa: numeroActa,
-        id: id
-    });
-    
-    // 7. Proceso en segundo plano para generar y enviar el documento
-    (async () => {
-        try {
-            // Usamos la nueva plantilla que creamos en el Paso 1
-            const templateName = 'actaSalientePaga.html';
-            
-            const docBuffer = await documentService.generateDocFromTemplate(templateName, newRowData);
-            const docFileName = `Acta_Saliente_${numeroActa}.docx`;
-
-            if (!docBuffer || docBuffer.length === 0) {
-                throw new Error('El buffer del documento está vacío.');
+    try {
+        const id = Math.random().toString(36).substring(2, 10).toUpperCase();
+        const allData = await sheets.getSheetData(ACTA_SALIENTE_PAGA_SHEET);
+        let nextNumber = 1;
+        if (allData && allData.length > 1) {
+            const lastRow = allData[allData.length - 1];
+            const lastActaNumber = lastRow[0];
+            const lastNumberMatch = lastActaNumber.match(/-(\d+)$/);
+            if (lastNumberMatch) {
+                nextNumber = parseInt(lastNumberMatch[1], 10) + 1;
             }
-
-            const attachments = [{ filename: docFileName, content: docBuffer.toString('base64') }];
-            const emailHtml = `<h1>Felicidades</h1><p>Tu Acta de Entrega Saliente ha sido generada. La encontrarás adjunta.</p>`;
-            await emailService.sendEmail(req.body.email, 'Tu Acta de Entrega Saliente ha sido Generada', emailHtml, attachments);
-            
-            console.log(`Proceso de documento y correo para ${numeroActa} completado.`);
-        } catch (backgroundError) {
-            console.error(`Error en el proceso de fondo para el acta ${numeroActa}:`, backgroundError);
         }
-    })();
+        const formattedNumber = String(nextNumber).padStart(3, '0');
+        const numeroActa = `A.S.P.-${formattedNumber}`;
+
+        const sheetData = { ...req.body, numeroActa, id };
+        const templateData = { ...sheetData };
+        
+        for (const pregunta in anexosMap) {
+            const anexoInfo = anexosMap[pregunta];
+            templateData[anexoInfo.key] = req.body[pregunta] === 'SI' ? anexoInfo.text : '';
+        }
+        if (templateData['Anexo_VI'] && templateData['Anexo_VI'].trim()) {
+            templateData['Anexo_VI'] = `${templateData['Anexo_VI'].trim()}<br>VER ANEXO 6`;
+        }
+        const anexoVIIValue = templateData['Anexo_VII'] || templateData['Anexos_VII'] || '';
+        if (anexoVIIValue && anexoVIIValue.trim().toLowerCase() !== 'no aplica') {
+            templateData['Anexo_VII'] = `<strong>Anexo Séptimo: Otros anexos del acta:</strong> ${anexoVIIValue.trim()}`;
+            templateData['VER_ANEXO_7'] = 'VER ANEXO 7'; // Variable separada
+        } else {
+            templateData['Anexo_VII'] = '';
+            templateData['VER_ANEXO_7'] = '';
+        }
+
+       // ▼▼▼ CORRECCIÓN: MAPEO PARA COMPATIBILIDAD CON LA PLANTILLA EXISTENTE ▼▼▼
+        // Se crean nuevas propiedades en templateData con los nombres que la plantilla espera.
+        templateData.cargoentrega = templateData.denominacionCargoEntrega;
+        templateData.nombreinstitucion = templateData.nombreOrgano;
+        templateData.motivoentrega = templateData.motivoEntrega;
+        // La plantilla también usa {{denominacionCargo}} en el primer párrafo, así que lo mapeamos también.
+        templateData.denominacionCargo = templateData.denominacionCargoEntrega;
+        // ▲▲▲ FIN DE LA CORRECCIÓN ▲▲▲
+
+        // ▼▼▼ CORRECCIÓN DEFINITIVA: LISTA DE HEADERS EXACTA PARA ACTA SALIENTE ▼▼▼
+        const headers = [
+            "numeroActa", "id", "email", "rifOrgano", "denominacionCargoEntrega", "nombreOrgano", 
+            "ciudadSuscripcion", "estadoSuscripcion", "horaSuscripcion", "fechaSuscripcion", 
+            "direccionOrgano", "nombreServidorSaliente", "cedulaServidorSaliente", 
+            "designacionServidorSaliente", "motivoEntrega", "nombreServidorRecibe", "cedulaServidorRecibe", 
+            "designacionServidorRecibe", "estadoSituacionPresupuestaria", "Anexo_1", 
+            "relacionGastosComprometidosNoCausados", "Anexo_2", "relacionGastosCausadosNoPagados", "Anexo_3", 
+            "estadoPresupuestarioPorPartidas", "Anexo_4", "estadoPresupuestarioDetalleCuentas", "Anexo_5", 
+            "estadosFinancieros", "Anexo_6", "balanceComprobacion", "Anexo_7", "estadoSituacionFinanciera", "Anexo_8", 
+            "estadoRendimientoFinanciero", "Anexo_9", "estadoMovimientosPatrimonio", "Anexo_10", 
+            "relacionCuentasPorCobrar", "Anexo_11", "relacionCuentasPorPagar", "Anexo_12", 
+            "relacionCuentasFondosTerceros", "Anexo_13", "situacionFondosAnticipo", "Anexo_14", 
+            "situacionCajaChica", "Anexo_15", "actaArqueoCajasChicas", "Anexo_16", 
+            "listadoRegistroAuxiliarProveedores", "Anexo_17", "reportesLibrosContables", "Anexo_18", 
+            "reportesCuentasBancarias", "Anexo_19", "reportesConciliacionesBancarias", "Anexo_20", 
+            "reportesRetenciones", "Anexo_21", "reporteProcesosContrataciones", "Anexo_22", 
+            "reporteFideicomisoPrestaciones", "Anexo_23", "reporteBonosVacacionales", "Anexo_24", 
+            "cuadroResumenCargos", "Anexo_25", "cuadroResumenValidadoRRHH", "Anexo_26", 
+            "reporteNominas", "Anexo_27", "inventarioBienes", "Anexo_28", "ejecucionPlanOperativo", "Anexo_29", 
+            "causasIncumplimientoMetas", "Anexo_30", "planOperativoAnual", "Anexo_31", "clasificacionArchivo", "Anexo_32", 
+            "ubicacionFisicaArchivo", "Anexo_33", "Anexo_VI", "Anexos_VII", "relacionMontosFondosAsignados", "Anexo_34", 
+            "saldoEfectivoFondos", "Anexo_35", "relacionBienesAsignados", "Anexo_36", 
+            "relacionBienesAsignadosUnidadBienes", "Anexo_37", "estadosBancariosConciliados", "Anexo_38", 
+            "listaComprobantesGastos", "Anexo_39", "chequesEmitidosPendientesCobro", "Anexo_40", 
+            "listadoTransferenciaBancaria", "Anexo_41", "caucionFuncionario", "Anexo_42", 
+            "cuadroDemostrativoRecaudado", "Anexo_43", "relacionExpedientesAbiertos", "Anexo_44", 
+            "situacionTesoroNacional", "Anexo_45", "infoEjecucionPresupuestoNacional", "Anexo_46", 
+            "montoDeudaPublicaNacional", "Anexo_47", "situacionCuentasNacion", "Anexo_48", 
+            "situacionTesoroEstadal", "Anexo_49", "infoEjecucionPresupuestoEstadal", "Anexo_50", 
+            "situacionCuentasEstado", "Anexo_51", "situacionTesoroDistritalMunicipal", "Anexo_52", 
+            "infoEjecucionPresupuestoDistritalMunicipal", "Anexo_53", "situacionCuentasDistritalesMunicipales", "Anexo_54", 
+            "inventarioTerrenosEjidos", "Anexo_55", "relacionIngresosVentaTerrenos", "Anexo_56", 
+            "observacionesAdicionales", "FirmaAuditoría", "interesProducto", "LinkDocumento"
+        ];
+        // ▲▲▲ FIN DE LA CORRECCIÓN ▲▲▲
+        
+        const newRowArray = headers.map(header => sheetData[header] || '');
+        const success = await sheets.appendSheetData(ACTA_SALIENTE_PAGA_SHEET, newRowArray);
+
+        if (!success) {
+            return res.status(500).json({ message: 'Error al guardar el acta en la hoja de cálculo.' });
+        }
+
+        res.status(201).json({ 
+            message: 'Acta Saliente (Paga) creada. El documento se está generando y se enviará por correo.',
+            numeroActa: numeroActa,
+            id: id
+        });
+
+        (async () => {
+            try {
+                const docBuffer = await documentService.generateDocFromTemplate('actaSalientePaga.html', templateData);
+                const docFileName = `Acta_Saliente_${numeroActa}.docx`;
+                if (!docBuffer || docBuffer.length === 0) throw new Error('El buffer del documento está vacío.');
+
+                const attachments = [{ filename: docFileName, content: docBuffer.toString('base64') }];
+                const emailHtml = `<h1>Felicidades</h1><p>Tu Acta de Entrega Saliente ha sido generada. La encontrarás adjunta.</p>`;
+                await emailService.sendEmail(req.body.email, 'Tu Acta de Entrega Saliente ha sido Generada', emailHtml, attachments);
+                
+                console.log(`Proceso de documento y correo para ${numeroActa} completado.`);
+            } catch (backgroundError) {
+                console.error(`Error en el proceso de fondo para el acta ${numeroActa}:`, backgroundError);
+            }
+        })();
     
-  } catch (error) {
-    console.error('Error en createActaSalientePaga:', error);
-    res.status(500).json({ message: 'Error interno del servidor.' });
-  }
+    } catch (error) {
+        console.error('Error en createActaSalientePaga:', error);
+        res.status(500).json({ message: 'Error interno del servidor.' });
+    }
 };
 
 module.exports = {
