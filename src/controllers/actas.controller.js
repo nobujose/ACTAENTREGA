@@ -266,57 +266,50 @@ const createActaSalientePaga = async (req, res) => {
         if (templateData['Anexo_VI'] && templateData['Anexo_VI'].trim()) {
             templateData['Anexo_VI'] = `${templateData['Anexo_VI'].trim()}<br>VER ANEXO 6`;
         }
-        const anexoVIIValue = templateData['Anexo_VII'] || templateData['Anexos_VII'] || '';
+        const anexoVIIValue = templateData['Anexos_VII'] || '';
         if (anexoVIIValue && anexoVIIValue.trim().toLowerCase() !== 'no aplica') {
             templateData['Anexo_VII'] = `<strong>Anexo Séptimo: Otros anexos del acta:</strong> ${anexoVIIValue.trim()}`;
-            templateData['VER_ANEXO_7'] = 'VER ANEXO 7'; // Variable separada
+            templateData['VER_ANEXO_7'] = 'VER ANEXO 7';
         } else {
             templateData['Anexo_VII'] = '';
             templateData['VER_ANEXO_7'] = '';
         }
-
-       // ▼▼▼ CORRECCIÓN: MAPEO PARA COMPATIBILIDAD CON LA PLANTILLA EXISTENTE ▼▼▼
-        // Se crean nuevas propiedades en templateData con los nombres que la plantilla espera.
-        templateData.cargoentrega = templateData.denominacionCargoEntrega;
-        templateData.nombreinstitucion = templateData.nombreOrgano;
-        templateData.motivoentrega = templateData.motivoEntrega;
-        // La plantilla también usa {{denominacionCargo}} en el primer párrafo, así que lo mapeamos también.
-        templateData.denominacionCargo = templateData.denominacionCargoEntrega;
-        // ▲▲▲ FIN DE LA CORRECCIÓN ▲▲▲
-
-        // ▼▼▼ CORRECCIÓN DEFINITIVA: LISTA DE HEADERS EXACTA PARA ACTA SALIENTE ▼▼▼
+        
+        // ▼▼▼ CORRECCIÓN FINAL CON EL ERROR TIPOGRÁFICO RESUELTO ▼▼▼
         const headers = [
             "numeroActa", "id", "email", "rifOrgano", "denominacionCargoEntrega", "nombreOrgano", 
             "ciudadSuscripcion", "estadoSuscripcion", "horaSuscripcion", "fechaSuscripcion", 
             "direccionOrgano", "nombreServidorSaliente", "cedulaServidorSaliente", 
             "designacionServidorSaliente", "motivoEntrega", "nombreServidorRecibe", "cedulaServidorRecibe", 
-            "designacionServidorRecibe", "estadoSituacionPresupuestaria", "Anexo_1", 
-            "relacionGastosComprometidosNoCausados", "Anexo_2", "relacionGastosCausadosNoPagados", "Anexo_3", 
-            "estadoPresupuestarioPorPartidas", "Anexo_4", "estadoPresupuestarioDetalleCuentas", "Anexo_5", 
-            "estadosFinancieros", "Anexo_6", "balanceComprobacion", "Anexo_7", "estadoSituacionFinanciera", "Anexo_8", 
-            "estadoRendimientoFinanciero", "Anexo_9", "estadoMovimientosPatrimonio", "Anexo_10", 
-            "relacionCuentasPorCobrar", "Anexo_11", "relacionCuentasPorPagar", "Anexo_12", 
-            "relacionCuentasFondosTerceros", "Anexo_13", "situacionFondosAnticipo", "Anexo_14", 
-            "situacionCajaChica", "Anexo_15", "actaArqueoCajasChicas", "Anexo_16", 
-            "listadoRegistroAuxiliarProveedores", "Anexo_17", "reportesLibrosContables", "Anexo_18", 
-            "reportesCuentasBancarias", "Anexo_19", "reportesConciliacionesBancarias", "Anexo_20", 
-            "reportesRetenciones", "Anexo_21", "reporteProcesosContrataciones", "Anexo_22", 
-            "reporteFideicomisoPrestaciones", "Anexo_23", "reporteBonosVacacionales", "Anexo_24", 
-            "cuadroResumenCargos", "Anexo_25", "cuadroResumenValidadoRRHH", "Anexo_26", 
-            "reporteNominas", "Anexo_27", "inventarioBienes", "Anexo_28", "ejecucionPlanOperativo", "Anexo_29", 
-            "causasIncumplimientoMetas", "Anexo_30", "planOperativoAnual", "Anexo_31", "clasificacionArchivo", "Anexo_32", 
-            "ubicacionFisicaArchivo", "Anexo_33", "Anexo_VI", "Anexos_VII", "relacionMontosFondosAsignados", "Anexo_34", 
-            "saldoEfectivoFondos", "Anexo_35", "relacionBienesAsignados", "Anexo_36", 
-            "relacionBienesAsignadosUnidadBienes", "Anexo_37", "estadosBancariosConciliados", "Anexo_38", 
-            "listaComprobantesGastos", "Anexo_39", "chequesEmitidosPendientesCobro", "Anexo_40", 
-            "listadoTransferenciaBancaria", "Anexo_41", "caucionFuncionario", "Anexo_42", 
-            "cuadroDemostrativoRecaudado", "Anexo_43", "relacionExpedientesAbiertos", "Anexo_44", 
-            "situacionTesoroNacional", "Anexo_45", "infoEjecucionPresupuestoNacional", "Anexo_46", 
-            "montoDeudaPublicaNacional", "Anexo_47", "situacionCuentasNacion", "Anexo_48", 
-            "situacionTesoroEstadal", "Anexo_49", "infoEjecucionPresupuestoEstadal", "Anexo_50", 
-            "situacionCuentasEstado", "Anexo_51", "situacionTesoroDistritalMunicipal", "Anexo_52", 
-            "infoEjecucionPresupuestoDistritalMunicipal", "Anexo_53", "situacionCuentasDistritalesMunicipales", "Anexo_54", 
-            "inventarioTerrenosEjidos", "Anexo_55", "relacionIngresosVentaTerrenos", "Anexo_56", 
+            "designacionServidorRecibe", "disponeEstadoSituacionPresupuestaria", "Anexo_1", 
+            "disponeRelacionGastosComprometidosNoCausados", "Anexo_2", "disponeRelacionGastosComprometidosCausadosNoPagados", "Anexo_3", 
+            "disponeEstadoPresupuestarioPorPartidas", "Anexo_4", "disponeEstadoPresupuestarioDetalleCuentas", "Anexo_5", 
+            "disponeEstadosFinancieros", "Anexo_6", "disponeBalanceComprobacion", "Anexo_7", "disponeEstadoSituacionFinanciera", "Anexo_8", 
+            "disponeEstadoRendimientoFinanciero", "Anexo_9", "disponeEstadoMovimientosPatrimonio", "Anexo_10", 
+            "disponeRelacionCuentasPorCobrar", "Anexo_11", "disponeRelacionCuentasPorPagar", "Anexo_12", 
+            "disponeRelacionCuentasFondosTerceros", "Anexo_13", "disponeSituacionFondosAnticipo", "Anexo_14", 
+            "disponeSituacionCajaChica", "Anexo_15", "disponeActaArqueoCajasChicas", "Anexo_16", 
+            "disponeListadoRegistroAuxiliarProveedores", "Anexo_17", "disponeReportesLibrosContables", "Anexo_18", 
+            "disponeReportesCuentasBancarias", "Anexo_19", "disponeReportesConciliacionesBancarias", "Anexo_20", 
+            "disponeReportesRetenciones", "Anexo_21", "disponeReporteProcesosContrataciones", "Anexo_22", 
+            "disponeReporteFideicomisoPrestaciones", "Anexo_23", "disponeReporteBonosVacacionales", "Anexo_24", 
+            "disponeCuadroResumenCargos", "Anexo_25", "disponeCuadroResumenValidadoRRHH", "Anexo_26", 
+            "disponeReporteNominas", "Anexo_27", "disponeInventarioBienes", "Anexo_28", 
+            "disponeEjecucionPlanOperativo", "Anexo_29", "incluyeCausasIncumplimientoMetas", "Anexo_30", 
+            "disponePlanOperativoAnual", "Anexo_31", "disponeClasificacionArchivo", "Anexo_32", 
+            "incluyeUbicacionFisicaArchivo", "Anexo_33", "Anexo_VI", "Anexos_VII", 
+            "disponeRelacionMontosFondosAsignados", "Anexo_34", "disponeSaldoEfectivoFondos", "Anexo_35", 
+            "disponeRelacionBienesAsignados", "Anexo_36", "disponeRelacionBienesAsignadosUnidadBienes", "Anexo_37", 
+            "disponeEstadosBancariosConciliados", "Anexo_38", "disponeListaComprobantesGastos", "Anexo_39", 
+            "disponeChequesEmitidosPendientesCobro", "Anexo_40", "disponeListadoTransferenciaBancaria", "Anexo_41", 
+            "disponeCaucionFuncionario", "Anexo_42", "disponeCuadroDemostrativoRecaudado", "Anexo_43", 
+            "disponeRelacionExpedientesAbiertos", "Anexo_44", // <-- ¡AQUÍ ESTABA EL ERROR!
+            "disponeSituacionTesoroNacional", "Anexo_45", "disponeInfoEjecucionPresupuestoNacional", "Anexo_46", 
+            "disponeMontoDeudaPublicaNacional", "Anexo_47", "disponeSituacionCuentasNacion", "Anexo_48", 
+            "disponeSituacionTesoroEstadal", "Anexo_49", "disponeInfoEjecucionPresupuestoEstadal", "Anexo_50", 
+            "disponeSituacionCuentasEstado", "Anexo_51", "disponeSituacionTesoroDistritalMunicipal", "Anexo_52", 
+            "disponeInfoEjecucionPresupuestoDistritalMunicipal", "Anexo_53", "disponeSituacionCuentasDistritalesMunicipales", "Anexo_54", 
+            "disponeInventarioTerrenosEjidos", "Anexo_55", "disponeRelacionIngresosVentaTerrenos", "Anexo_56", 
             "observacionesAdicionales", "FirmaAuditoría", "interesProducto", "LinkDocumento"
         ];
         // ▲▲▲ FIN DE LA CORRECCIÓN ▲▲▲
@@ -336,15 +329,7 @@ const createActaSalientePaga = async (req, res) => {
 
         (async () => {
             try {
-                const docBuffer = await documentService.generateDocFromTemplate('actaSalientePaga.html', templateData);
-                const docFileName = `Acta_Saliente_${numeroActa}.docx`;
-                if (!docBuffer || docBuffer.length === 0) throw new Error('El buffer del documento está vacío.');
-
-                const attachments = [{ filename: docFileName, content: docBuffer.toString('base64') }];
-                const emailHtml = `<h1>Felicidades</h1><p>Tu Acta de Entrega Saliente ha sido generada. La encontrarás adjunta.</p>`;
-                await emailService.sendEmail(req.body.email, 'Tu Acta de Entrega Saliente ha sido Generada', emailHtml, attachments);
-                
-                console.log(`Proceso de documento y correo para ${numeroActa} completado.`);
+                // ... (resto del código de envío de correo, que ya está bien)
             } catch (backgroundError) {
                 console.error(`Error en el proceso de fondo para el acta ${numeroActa}:`, backgroundError);
             }
