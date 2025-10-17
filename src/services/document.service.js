@@ -14,7 +14,7 @@ const generateDocFromTemplate = async (templateName, data) => {
     let htmlContent = await fs.readFile(templatePath, 'utf-8');
 
     // --- INICIO DE LA NUEVA LÓGICA ---
-
+    let processedHtml = htmlContent.trim();
     // 1. Eliminación condicional de líneas de anexos
     // Este bucle se encarga de los anexos que no fueron seleccionados (su valor es vacío).
     for (const key in data) {
@@ -45,6 +45,7 @@ const generateDocFromTemplate = async (templateName, data) => {
     // Limpieza final para eliminar cualquier marcador {{...}} que haya quedado.
     htmlContent = htmlContent.replace(/{{[^}}]+}}/g, '');
 
+   
     // --- FIN DE LA NUEVA LÓGICA ---
 
     const docxBuffer = await HTMLToDOCX(htmlContent, null, {
