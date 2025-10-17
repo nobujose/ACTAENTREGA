@@ -329,7 +329,31 @@ const createActaSalientePaga = async (req, res) => {
 
         (async () => {
             try {
-                // ... (resto del código de envío de correo, que ya está bien)
+               // ▼▼▼ ESTA ES LA PARTE QUE FALTABA ▼▼▼
+
+                // 1. Determinar la plantilla a usar (asumimos la misma lógica que el acta entrante)
+                const templateName = req.body.omision ? 'omisionActa.html' : 'actaSalientePaga.html';
+
+                // 2. Generar el buffer del documento .docx
+                const docBuffer = await documentService.generateDocFromTemplate(templateName, templateData);
+                const docFileName = `Acta_Saliente_Paga_${numeroActa}.docx`;
+
+                if (!docBuffer || docBuffer.length === 0) {
+                    throw new Error('El buffer del documento está vacío.');
+                }
+
+                // 3. Preparar y enviar el correo
+                const attachments = [{ filename: docFileName, content: docBuffer.toString('base64') }];
+                const emailHtml = `<h1>Felicidades</h1><p>Tu Acta de Entrega Saliente ha sido generada. La encontrarás adjunta en este correo.</p>`;
+                await emailService.sendEmail(
+                    req.body.email,
+                    'Tu Acta de Entrega Saliente ha sido Generada',
+                    emailHtml,
+                    attachments
+                );
+                
+                console.log(`Proceso de documento y correo para el acta saliente ${numeroActa} completado.`);
+
             } catch (backgroundError) {
                 console.error(`Error en el proceso de fondo para el acta ${numeroActa}:`, backgroundError);
             }
