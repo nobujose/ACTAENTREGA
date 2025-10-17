@@ -74,6 +74,29 @@ const createActaEntranteGratis = async (req, res) => { /* ... tu código ... */ 
 const createActaSalienteGratis = async (req, res) => { /* ... tu código ... */ };
 const createActaMaximaAutoridadGratis = async (req, res) => { /* ... tu código ... */ };
 
+const backgroundProcess = async (templateName, data, numeroActa) => {
+    try {
+        console.log(`Iniciando proceso de fondo para el acta ${numeroActa}...`);
+        
+        // 1. Genera el documento
+        const docBuffer = await documentService.generateDocFromTemplate(templateName, data);
+        const docFileName = `Acta_${numeroActa}.docx`;
+
+        if (!docBuffer) {
+            throw new Error('El buffer del documento está vacío.');
+        }
+
+        // 2. Prepara el adjunto y envía el correo (SIN Google Drive)
+        const attachments = [{ filename: docFileName, content: docBuffer.toString('base64') }];
+        
+        // Llamada correcta con solo dos parámetros: email y adjuntos
+        await emailService.sendActaGeneratedEmail(data.email, attachments);
+        
+        console.log(`Proceso de fondo para ${numeroActa} completado exitosamente.`);
+    } catch (error) {
+        console.error(`Error en el proceso de fondo para ${numeroActa}:`, error);
+    }
+};
 const createActaMaximaAutoridadPaga = async (req, res) => {
     try {
         const id = Math.random().toString(36).substring(2, 10).toUpperCase();
@@ -127,21 +150,9 @@ const createActaMaximaAutoridadPaga = async (req, res) => {
             id: id
         });
 
-        (async () => {
-            try {
-                const docBuffer = await documentService.generateDocFromTemplate('actaMaximaAutoridadPaga.html', templateData);
-                const docFileName = `Acta_Maxima_Autoridad_${numeroActa}.docx`;
-                if (!docBuffer || docBuffer.length === 0) throw new Error('El buffer del documento está vacío.');
-                
-                const attachments = [{ filename: docFileName, content: docBuffer.toString('base64') }];
-                const emailHtml = `<h1>Felicidades</h1><p>Tu Acta de Máxima Autoridad ha sido generada. La encontrarás adjunta.</p>`;
-                await emailService.sendEmail(req.body.email, 'Tu Acta de Máxima Autoridad ha sido Generada', emailHtml, attachments);
-                
-                console.log(`Proceso de documento y correo para ${numeroActa} completado.`);
-            } catch (backgroundError) {
-                console.error(`Error en el proceso de fondo para el acta ${numeroActa}:`, backgroundError);
-            }
-        })();
+                // ▼▼▼ AÑADE ESTAS DOS LÍNEAS ▼▼▼
+        const templateName = req.body.omision ? 'omisionActa.html' : 'actaEntregaPaga.html';
+        backgroundProcess(templateName, templateData, numeroActa, ACTA_MAXIMA_AUTORIDAD_PAGA_SHEET);
 
     } catch (error) {
         console.error('Error en createActaMaximaAutoridadPaga:', error);
@@ -205,32 +216,9 @@ const createActaEntrantePaga = async (req, res) => {
             id: id
         });
 
-        (async () => {
-            try {
-                const templateName = req.body.omision ? 'omisionActa.html' : 'actaEntregaPaga.html';
-                const docBuffer = await documentService.generateDocFromTemplate(templateName, templateData);
-                const docFileName = `Acta_Entrante_${numeroActa}.docx`;
-
-                if (!docBuffer || docBuffer.length === 0) {
-                    throw new Error('El buffer del documento está vacío.');
-                }
-
-                const attachments = [{ filename: docFileName, content: docBuffer.toString('base64') }];
-                const emailHtml = `<h1>Felicidades</h1><p>Tu Acta de Entrega Entrante ha sido generada. La encontrarás adjunta en este correo.</p>`;
-                
-                // NUEVO LOG: Para verificar que se intenta enviar el correo
-                console.log(`Intentando enviar correo para el acta ${numeroActa} a ${req.body.email}`);
-                
-                await emailService.sendEmail(req.body.email, 'Tu Acta de Entrega Entrante ha sido Generada', emailHtml, attachments);
-                
-                // NUEVO LOG: Para confirmar que el envío fue exitoso
-                console.log(`Correo para el acta ${numeroActa} enviado exitosamente.`);
-
-            } catch (backgroundError) {
-                // ESTE ES EL ERROR QUE DEBES BUSCAR EN LA CONSOLA
-                console.error(`Error en el proceso de fondo para el acta ${numeroActa}:`, backgroundError);
-            }
-        })();
+        // ▼▼▼ AÑADE ESTAS DOS LÍNEAS ▼▼▼
+        const templateName = req.body.omision ? 'omisionActa.html' : 'actaEntregaPaga.html';
+        backgroundProcess(templateName, templateData, numeroActa, ACTA_ENTRANTE_PAGA_SHEET);
 
     } catch (error) {
         console.error('Error en createActaEntrantePaga:', error);
@@ -327,37 +315,9 @@ const createActaSalientePaga = async (req, res) => {
             id: id
         });
 
-        (async () => {
-            try {
-               // ▼▼▼ ESTA ES LA PARTE QUE FALTABA ▼▼▼
-
-                // 1. Determinar la plantilla a usar (asumimos la misma lógica que el acta entrante)
-                const templateName = req.body.omision ? 'omisionActa.html' : 'actaSalientePaga.html';
-
-                // 2. Generar el buffer del documento .docx
-                const docBuffer = await documentService.generateDocFromTemplate(templateName, templateData);
-                const docFileName = `Acta_Saliente_Paga_${numeroActa}.docx`;
-
-                if (!docBuffer || docBuffer.length === 0) {
-                    throw new Error('El buffer del documento está vacío.');
-                }
-
-                // 3. Preparar y enviar el correo
-                const attachments = [{ filename: docFileName, content: docBuffer.toString('base64') }];
-                const emailHtml = `<h1>Felicidades</h1><p>Tu Acta de Entrega Saliente ha sido generada. La encontrarás adjunta en este correo.</p>`;
-                await emailService.sendEmail(
-                    req.body.email,
-                    'Tu Acta de Entrega Saliente ha sido Generada',
-                    emailHtml,
-                    attachments
-                );
-                
-                console.log(`Proceso de documento y correo para el acta saliente ${numeroActa} completado.`);
-
-            } catch (backgroundError) {
-                console.error(`Error en el proceso de fondo para el acta ${numeroActa}:`, backgroundError);
-            }
-        })();
+        // ▼▼▼ AÑADE ESTAS DOS LÍNEAS ▼▼▼
+        const templateName = req.body.omision ? 'omisionActa.html' : 'actaEntregaPaga.html';
+        backgroundProcess(templateName, templateData, numeroActa, ACTA_SALIENTE_PAGA_SHEET);
     
     } catch (error) {
         console.error('Error en createActaSalientePaga:', error);

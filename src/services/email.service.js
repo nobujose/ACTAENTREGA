@@ -77,10 +77,44 @@ const sendPasswordResetEmail = async (to, otp, userName) => {
 
   return sendEmail(to, 'Tu código para restablecer la contraseña', htmlContent);
 };
+// ▼▼▼ NUEVA FUNCIÓN DE CORREO UNIFICADA ▼▼▼
 
+/**
+ * Envía el correo estandarizado para CUALQUIER acta generada (solo con adjunto).
+ * @param {string} to - Email del destinatario.
+ * @param {Array} attachments - El documento para adjuntar al correo.
+ */
+const sendActaGeneratedEmail = async (to, attachments) => {
+  const subject = 'Has completado el primer paso. Aquí está tu Acta Express.';
+  const proLink = 'https://api.whatsapp.com/send?phone=+584125253023&text=Hola,%20quiero%20adquirir%20Actas%20de%20Entregas%20PRO';
+  
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 20px auto; border: 1px solid #ddd; border-radius: 8px;">
+      <div style="padding: 20px;">
+        <h2 style="color: #001A70;">¡Excelente trabajo!</h2>
+        <p>Has generado con éxito tu borrador de Acta de Entrega. Lo encontrarás adjunto en este correo.</p>
+        <h3 style="color: #001A70; border-top: 1px solid #eee; padding-top: 15px;">Próximos pasos (Instrucciones Clave):</h3>
+        <p>📌 Descarga y revisa el documento adjunto.<br>📌 Imprime las copias necesarias (original y tres copias).<br>📌 Procede con la firma y distribuirlas según la normativa.</p>
+      </div>
+      <div style="background-color: #f7f7f7; padding: 20px; border-top: 1px solid #ddd;">
+        <h3 style="color: #001A70; text-align: center;">¿Sabías que este es solo el comienzo?</h3>
+        <p style="font-size: 14px;">Un proceso de entrega formal implica mucho más: anexos detallados, análisis de riesgos y la verificación de cada punto para evitar futuras responsabilidades.</p>
+        <div style="text-align: center; margin-top: 20px;">
+          <a href="${proLink}" style="background-color: #ff8c00; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">¡Quiero actualizar a la versión PRO!</a>
+        </div>
+      </div>
+      <div style="padding: 20px; text-align: center; font-size: 12px; color: #777;">
+        <p>Si tienes alguna pregunta, nuestro equipo está listo para ayudarte.<br>Atentamente,<br><strong>El equipo de Universitas Legal</strong></p>
+      </div>
+    </div>
+  `;
+  // Enviamos el correo solo con el adjunto
+  return sendEmail(to, subject, htmlContent, attachments);
+};
 // 5. EXPORTACIÓN DE TODAS LAS FUNCIONES
 module.exports = {
   sendEmail,
   sendConfirmationEmail,
   sendPasswordResetEmail,
+  sendActaGeneratedEmail,
 };
