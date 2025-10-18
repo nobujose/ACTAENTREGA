@@ -151,7 +151,7 @@ const createActaMaximaAutoridadPaga = async (req, res) => {
         });
 
                 // ▼▼▼ AÑADE ESTAS DOS LÍNEAS ▼▼▼
-        const templateName = req.body.omision ? 'omisionActa.html' : 'actaEntregaPaga.html';
+        const templateName = req.body.omision ? 'omisionActa.html' : 'actaMaximaAutoridadPaga.html';
         backgroundProcess(templateName, templateData, numeroActa, ACTA_MAXIMA_AUTORIDAD_PAGA_SHEET);
 
     } catch (error) {
@@ -316,7 +316,7 @@ const createActaSalientePaga = async (req, res) => {
         });
 
         // ▼▼▼ AÑADE ESTAS DOS LÍNEAS ▼▼▼
-        const templateName = req.body.omision ? 'omisionActa.html' : 'actaEntregaPaga.html';
+        const templateName = req.body.omision ? 'omisionActa.html' : 'actaSalientePaga.html';
         backgroundProcess(templateName, templateData, numeroActa, ACTA_SALIENTE_PAGA_SHEET);
     
     } catch (error) {
