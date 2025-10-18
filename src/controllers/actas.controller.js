@@ -90,7 +90,7 @@ const backgroundProcess = async (templateName, data, numeroActa) => {
         const attachments = [{ filename: docFileName, content: docBuffer.toString('base64') }];
         
         // Llamada correcta con solo dos parámetros: email y adjuntos
-        await emailService.sendActaGeneratedEmail(data.email, attachments);
+        await emailService.sendActaGeneratedEmail(data.email, attachments, numeroActa);
         
         console.log(`Proceso de fondo para ${numeroActa} completado exitosamente.`);
     } catch (error) {
