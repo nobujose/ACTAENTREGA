@@ -111,7 +111,7 @@ const createActaMaximaAutoridadPaga = async (req, res) => {
             }
         }
         const formattedNumber = String(nextNumber).padStart(3, '0');
-        const numeroActa = `A.M.A.P-${formattedNumber}`;
+        const numeroActa = `M.A-${formattedNumber}`;
 
         const sheetData = { ...req.body, numeroActa, id };
         const templateData = { ...sheetData };
@@ -178,7 +178,7 @@ const createActaEntrantePaga = async (req, res) => {
             }
         }
         const formattedNumber = String(nextNumber).padStart(3, '0');
-        const numeroActa = `A.E.P.-${formattedNumber}`;
+        const numeroActa = `E-${formattedNumber}`;
 
         const sheetData = { ...req.body, numeroActa, id };
         const templateData = { ...sheetData };
@@ -242,7 +242,7 @@ const createActaSalientePaga = async (req, res) => {
             }
         }
         const formattedNumber = String(nextNumber).padStart(3, '0');
-        const numeroActa = `A.S.P.-${formattedNumber}`;
+        const numeroActa = `S-${formattedNumber}`;
 
         const sheetData = { ...req.body, numeroActa, id };
         const templateData = { ...sheetData };
