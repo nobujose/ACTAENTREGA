@@ -80,19 +80,21 @@ const sendPasswordResetEmail = async (to, otp, userName) => {
 // ▼▼▼ NUEVA FUNCIÓN DE CORREO UNIFICADA ▼▼▼
 
 /**
- * Envía el correo estandarizado para CUALQUIER acta generada (solo con adjunto).
+ * Envía el correo estandarizado para CUALQUIER acta generada.
  * @param {string} to - Email del destinatario.
  * @param {Array} attachments - El documento para adjuntar al correo.
+ * @param {string} actaName - El nombre/número del acta para el asunto (ej: "A.E.P.-045").
  */
-const sendActaGeneratedEmail = async (to, attachments) => {
-  const subject = 'Has completado el primer paso. Aquí está tu Acta Express.';
+const sendActaGeneratedEmail = async (to, attachments, actaName) => {
+  // ▼▼▼ CAMBIO: El asunto ahora es dinámico ▼▼▼
+  const subject = `Has completado el primer paso. Aquí está tu acta express: ${actaName}.`;
   const proLink = 'https://api.whatsapp.com/send?phone=+584125253023&text=Hola,%20quiero%20adquirir%20Actas%20de%20Entregas%20PRO';
   
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 20px auto; border: 1px solid #ddd; border-radius: 8px;">
       <div style="padding: 20px;">
         <h2 style="color: #001A70;">¡Excelente trabajo!</h2>
-        <p>Has generado con éxito tu borrador de Acta de Entrega. Lo encontrarás adjunto en este correo.</p>
+        <p>Has generado con éxito tu borrador de Acta de Entrega (${actaName}). Lo encontrarás adjunto en este correo.</p>
         <h3 style="color: #001A70; border-top: 1px solid #eee; padding-top: 15px;">Próximos pasos (Instrucciones Clave):</h3>
         <p>📌 Descarga y revisa el documento adjunto.<br>📌 Imprime las copias necesarias (original y tres copias).<br>📌 Procede con la firma y distribuirlas según la normativa.</p>
       </div>
@@ -108,7 +110,6 @@ const sendActaGeneratedEmail = async (to, attachments) => {
       </div>
     </div>
   `;
-  // Enviamos el correo solo con el adjunto
   return sendEmail(to, subject, htmlContent, attachments);
 };
 // 5. EXPORTACIÓN DE TODAS LAS FUNCIONES
