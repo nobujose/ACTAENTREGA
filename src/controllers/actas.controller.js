@@ -116,11 +116,21 @@ const createActaMaximaAutoridadPaga = async (req, res) => {
         const sheetData = { ...req.body, numeroActa, id };
         const templateData = { ...sheetData };
 
+        // ▼▼▼ LÓGICA "FALTA:" ACTUALIZADA ▼▼▼
         for (const pregunta in anexosMap) {
             const anexoInfo = anexosMap[pregunta];
-            templateData[anexoInfo.key] = req.body[pregunta] === 'SI' ? anexoInfo.text : '';
-        }
+            const respuestaUsuario = req.body[pregunta] || '';
 
+            if (respuestaUsuario.toUpperCase() === 'SI') {
+                templateData[anexoInfo.key] = anexoInfo.text;
+            } else if (respuestaUsuario.toUpperCase() === 'NO') {
+                // Ahora usa el texto completo del anexo
+                templateData[anexoInfo.key] = `FALTA: ${anexoInfo.text || pregunta}`; 
+            } else { 
+                templateData[anexoInfo.key] = ''; 
+            }
+        }
+        // ▲▲▲ FIN DE LÓGICA ACTUALIZADA ▲▲▲
         if (templateData['Anexo_VI'] && templateData['Anexo_VI'].trim()) {
             templateData['Anexo_VI'] = `${templateData['Anexo_VI'].trim()}<br>VER ANEXO 6`;
         }
@@ -183,10 +193,20 @@ const createActaEntrantePaga = async (req, res) => {
         const sheetData = { ...req.body, numeroActa, id };
         const templateData = { ...sheetData };
 
+        // ▼▼▼ LÓGICA "FALTA:" ACTUALIZADA ▼▼▼
         for (const pregunta in anexosMap) {
             const anexoInfo = anexosMap[pregunta];
-            templateData[anexoInfo.key] = req.body[pregunta] === 'SI' ? anexoInfo.text : '';
+            const respuestaUsuario = req.body[pregunta] || '';
+
+            if (respuestaUsuario.toUpperCase() === 'SI') {
+                templateData[anexoInfo.key] = anexoInfo.text;
+            } else if (respuestaUsuario.toUpperCase() === 'NO') {
+                templateData[anexoInfo.key] = `FALTA: ${anexoInfo.text || pregunta}`;
+            } else { 
+                templateData[anexoInfo.key] = '';
+            }
         }
+        // ▲▲▲ FIN DE LÓGICA ACTUALIZADA ▲▲▲
         if (templateData['Anexo_VI'] && templateData['Anexo_VI'].trim()) {
             templateData['Anexo_VI'] = `${templateData['Anexo_VI'].trim()}<br>VER ANEXO 6`;
         }
@@ -247,10 +267,20 @@ const createActaSalientePaga = async (req, res) => {
         const sheetData = { ...req.body, numeroActa, id };
         const templateData = { ...sheetData };
         
+        // ▼▼▼ LÓGICA "FALTA:" ACTUALIZADA ▼▼▼
         for (const pregunta in anexosMap) {
             const anexoInfo = anexosMap[pregunta];
-            templateData[anexoInfo.key] = req.body[pregunta] === 'SI' ? anexoInfo.text : '';
+            const respuestaUsuario = req.body[pregunta] || '';
+
+            if (respuestaUsuario.toUpperCase() === 'SI') {
+                templateData[anexoInfo.key] = anexoInfo.text;
+            } else if (respuestaUsuario.toUpperCase() === 'NO') {
+                templateData[anexoInfo.key] = `FALTA: ${anexoInfo.text || pregunta}`;
+            } else { 
+                templateData[anexoInfo.key] = '';
+            }
         }
+        // ▲▲▲ FIN DE LÓGICA ACTUALIZADA ▲▲▲
         if (templateData['Anexo_VI'] && templateData['Anexo_VI'].trim()) {
             templateData['Anexo_VI'] = `${templateData['Anexo_VI'].trim()}<br>VER ANEXO 6`;
         }
