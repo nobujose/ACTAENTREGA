@@ -132,12 +132,12 @@ const createActaMaximaAutoridadPaga = async (req, res) => {
         }
         // ▲▲▲ FIN DE LÓGICA ACTUALIZADA ▲▲▲
         if (templateData['Anexo_VI'] && templateData['Anexo_VI'].trim()) {
-            templateData['Anexo_VI'] = `${templateData['Anexo_VI'].trim()}<br>VER ANEXO 6`;
+            templateData['Anexo_VI'] = `${templateData['Anexo_VI'].trim()}<br>VER ANEXO`;
         }
         const anexoVIIValue = templateData['Anexo_VII'] || templateData['Anexo_VII'] || '';
         if (anexoVIIValue && anexoVIIValue.trim().toLowerCase() !== 'no aplica') {
             templateData['Anexo_VII'] = `<strong>Anexo Séptimo: Otros anexos del acta:</strong> ${anexoVIIValue.trim()}`;
-            templateData['VER_ANEXO_7'] = 'VER ANEXO 7'; // Variable separada
+            templateData['VER_ANEXO_7'] = 'VER ANEXO'; // Variable separada
         } else {
             templateData['Anexo_VII'] = '';
             templateData['VER_ANEXO_7'] = '';
@@ -208,12 +208,12 @@ const createActaEntrantePaga = async (req, res) => {
         }
         // ▲▲▲ FIN DE LÓGICA ACTUALIZADA ▲▲▲
         if (templateData['Anexo_VI'] && templateData['Anexo_VI'].trim()) {
-            templateData['Anexo_VI'] = `${templateData['Anexo_VI'].trim()}<br>VER ANEXO 6`;
+            templateData['Anexo_VI'] = `${templateData['Anexo_VI'].trim()}<br>VER ANEXO`;
         }
         const anexoVIIValue = templateData['Anexo_VII'] || '';
         if (anexoVIIValue && anexoVIIValue.trim().toLowerCase() !== 'no aplica') {
             templateData['Anexo_VII'] = `<strong>Anexo Séptimo: Otros anexos del acta:</strong> ${anexoVIIValue.trim()}`;
-            templateData['VER_ANEXO_7'] = 'VER ANEXO 7';
+            templateData['VER_ANEXO_7'] = 'VER ANEXO';
         } else {
             templateData['Anexo_VII'] = '';
             templateData['VER_ANEXO_7'] = '';
@@ -282,12 +282,12 @@ const createActaSalientePaga = async (req, res) => {
         }
         // ▲▲▲ FIN DE LÓGICA ACTUALIZADA ▲▲▲
         if (templateData['Anexo_VI'] && templateData['Anexo_VI'].trim()) {
-            templateData['Anexo_VI'] = `${templateData['Anexo_VI'].trim()}<br>VER ANEXO 6`;
+            templateData['Anexo_VI'] = `${templateData['Anexo_VI'].trim()}<br>VER ANEXO`;
         }
         const anexoVIIValue = templateData['Anexo_VII'] || '';
         if (anexoVIIValue && anexoVIIValue.trim().toLowerCase() !== 'no aplica') {
             templateData['Anexo_VII'] = `<strong>Anexo Séptimo: Otros anexos del acta:</strong> ${anexoVIIValue.trim()}`;
-            templateData['VER_ANEXO_7'] = 'VER ANEXO 7';
+            templateData['VER_ANEXO_7'] = 'VER ANEXO';
         } else {
             templateData['Anexo_VII'] = '';
             templateData['VER_ANEXO_7'] = '';
